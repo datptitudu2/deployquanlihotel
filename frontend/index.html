@@ -1772,12 +1772,26 @@
         }
       };
 
+      // Remove old event listeners first to prevent duplicates
       navButtons.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          navButtons.forEach((b) => b.classList.remove("active"));
+        // Clone node to remove all event listeners
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+      });
+      
+      // Get fresh references
+      const freshNavButtons = document.querySelectorAll('.nav button[data-page]');
+      
+      freshNavButtons.forEach((btn) => {
+        btn.addEventListener("click", function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          freshNavButtons.forEach((b) => b.classList.remove("active"));
           btn.classList.add("active");
           const page = btn.dataset.page;
           console.log('🖱️ Nav button clicked:', page);
+          
           // Luôn dùng window.showPage để đảm bảo dùng function mới nhất
           if (window.showPage) {
             window.showPage(page);
@@ -1786,7 +1800,7 @@
           } else {
             console.error('❌ showPage function not found!');
           }
-        });
+        }, { once: false });
       });
 
       // Delete row
@@ -2635,13 +2649,16 @@
     
     // Close mobile menu when clicking on nav items
     document.addEventListener('DOMContentLoaded', function() {
-      const navButtons = document.querySelectorAll('.nav button[data-page]');
-      navButtons.forEach(button => {
-        button.addEventListener('click', function() {
-          // Close mobile menu after a short delay to allow page transition
-          setTimeout(closeMobileMenu, 300);
+      // Use event delegation to avoid duplicate listeners
+      const nav = document.querySelector('.nav');
+      if (nav) {
+        nav.addEventListener('click', function(e) {
+          if (e.target.closest('button[data-page]')) {
+            // Close mobile menu after a short delay to allow page transition
+            setTimeout(closeMobileMenu, 300);
+          }
         });
-      });
+      }
       
       // Close mobile menu on window resize if screen becomes large
       window.addEventListener('resize', function() {

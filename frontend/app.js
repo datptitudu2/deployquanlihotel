@@ -1600,27 +1600,41 @@ function hidePageLoading(pageElement) {
 // Load dashboard when home page is shown
 // Override showPage to load dashboard stats
 const originalShowPage = window.showPage || showPage;
+// Prevent duplicate calls
+let showPageInProgress = false;
+
 window.showPage = async function(page) {
-  console.log('🔄 showPage called with:', page);
-  
-  // Hide all pages with smooth transition
-  document.querySelectorAll(".page").forEach((p) => {
-    p.classList.remove('active');
-    p.style.display = "none";
-  });
-  
-  const el = document.getElementById("page-" + page);
-  if (!el) {
-    console.error('❌ Không tìm thấy page:', 'page-' + page);
+  // Prevent duplicate calls
+  if (showPageInProgress) {
+    console.log('⏸️ showPage already in progress, skipping...');
     return;
   }
   
-  // Show page - SỬA: Thêm class active và set display
-  el.classList.add('active');
-  el.style.display = "block";
-  el.style.opacity = "1";
+  showPageInProgress = true;
+  console.log('🔄 showPage called with:', page);
   
-  console.log('✅ Đã hiển thị page:', page, el);
+  try {
+    // Hide all pages with smooth transition
+    document.querySelectorAll(".page").forEach((p) => {
+      if (p.id !== "page-" + page) {
+        p.classList.remove('active');
+        p.style.display = "none";
+      }
+    });
+    
+    const el = document.getElementById("page-" + page);
+    if (!el) {
+      console.error('❌ Không tìm thấy page:', 'page-' + page);
+      return;
+    }
+    
+    // Show page - SỬA: Thêm class active và set display với !important
+    el.classList.add('active');
+    el.style.setProperty('display', 'block', 'important');
+    el.style.setProperty('opacity', '1', 'important');
+    el.style.setProperty('visibility', 'visible', 'important');
+    
+    console.log('✅ Đã hiển thị page:', page, el, 'display:', el.style.display);
   
   // Update title
   const panelTitle = document.getElementById("panelTitle");
@@ -1660,11 +1674,18 @@ window.showPage = async function(page) {
   } finally {
     // Hide loading and show content with fade-in
     hidePageLoading(el);
-    // Đảm bảo page vẫn hiển thị sau khi hide loading
+    // Đảm bảo page vẫn hiển thị sau khi hide loading - dùng setProperty với important
     el.classList.add('active');
-    el.style.display = "block";
-    el.style.opacity = "1";
-    console.log('✅ Final state - page:', page, 'display:', el.style.display, 'active:', el.classList.contains('active'));
+    el.style.setProperty('display', 'block', 'important');
+    el.style.setProperty('opacity', '1', 'important');
+    el.style.setProperty('visibility', 'visible', 'important');
+    
+    // Force reflow để đảm bảo styles được apply
+    void el.offsetHeight;
+    
+    console.log('✅ Final state - page:', page, 'display:', el.style.display, 'active:', el.classList.contains('active'), 'computed:', window.getComputedStyle(el).display);
+    
+    showPageInProgress = false;
   }
 };
 
