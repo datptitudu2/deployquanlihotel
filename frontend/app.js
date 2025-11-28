@@ -1664,9 +1664,34 @@ const originalShowPage = window.showPage || showPage;
 let showPageInProgress = false;
 
 window.showPage = async function(page) {
-  // Prevent duplicate calls
+  // Store current page to load data even if duplicate call
+  const currentPage = page;
+  
+  // Prevent duplicate calls for display logic only
   if (showPageInProgress) {
-    console.log('⏸️ showPage already in progress, skipping...');
+    console.log('⏸️ showPage already in progress, but will still load data for:', currentPage);
+    // Still load data even if display is in progress
+    try {
+      if (currentPage === "customers") {
+        await loadCustomers();
+      } else if (currentPage === "rooms") {
+        await loadRooms();
+      } else if (currentPage === "services") {
+        await loadServices();
+      } else if (currentPage === "bookings") {
+        await loadBookings();
+      } else if (currentPage === "invoices") {
+        await loadInvoices();
+      } else if (currentPage === "usage") {
+        await loadUsage();
+      } else if (currentPage === "users") {
+        await loadUsers();
+      } else if (currentPage === "home") {
+        await loadDashboardStats();
+      }
+    } catch (error) {
+      console.error('Error loading page data (duplicate call):', error);
+    }
     return;
   }
   
