@@ -1660,7 +1660,11 @@ window.showPage = async function(page) {
   } finally {
     // Hide loading and show content with fade-in
     hidePageLoading(el);
+    // Đảm bảo page vẫn hiển thị sau khi hide loading
     el.classList.add('active');
+    el.style.display = "block";
+    el.style.opacity = "1";
+    console.log('✅ Final state - page:', page, 'display:', el.style.display, 'active:', el.classList.contains('active'));
   }
 };
 

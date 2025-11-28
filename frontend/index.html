@@ -320,18 +320,25 @@
 
       /* Page visibility */
       .page {
-        display: none !important;
+        display: none;
         opacity: 0;
         transition: opacity 0.3s ease-in-out;
       }
       .page.active {
         display: block !important;
-        opacity: 1;
+        opacity: 1 !important;
       }
       /* Ensure page is visible when display is set inline */
       .page[style*="display: block"] {
         display: block !important;
         opacity: 1 !important;
+      }
+      /* Force visibility for active pages */
+      .page.active[style*="display: block"],
+      .page.active[style*="display:block"] {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
       }
       .page.loading {
         opacity: 0.5;
@@ -1770,10 +1777,14 @@
           navButtons.forEach((b) => b.classList.remove("active"));
           btn.classList.add("active");
           const page = btn.dataset.page;
-          if (typeof showPage === 'function') {
-          showPage(page);
-          } else if (window.showPage) {
+          console.log('🖱️ Nav button clicked:', page);
+          // Luôn dùng window.showPage để đảm bảo dùng function mới nhất
+          if (window.showPage) {
             window.showPage(page);
+          } else if (typeof showPage === 'function') {
+            showPage(page);
+          } else {
+            console.error('❌ showPage function not found!');
           }
         });
       });
