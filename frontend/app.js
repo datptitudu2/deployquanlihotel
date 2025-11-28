@@ -1524,14 +1524,59 @@ async function updateBookingStatus(bookingId, newStatus) {
   }
 }
 
+// Loading state management
+function showPageLoading(pageElement) {
+  if (!pageElement) return;
+  
+  // Create or get loading overlay
+  let overlay = pageElement.querySelector('.loading-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.className = 'loading-overlay';
+    overlay.innerHTML = '<div class="loading-spinner"></div>';
+    pageElement.appendChild(overlay);
+  }
+  
+  // Show loading
+  setTimeout(() => {
+    overlay.classList.add('active');
+    pageElement.classList.add('loading');
+  }, 10);
+}
+
+function hidePageLoading(pageElement) {
+  if (!pageElement) return;
+  
+  const overlay = pageElement.querySelector('.loading-overlay');
+  if (overlay) {
+    overlay.classList.remove('active');
+    pageElement.classList.remove('loading');
+    // Remove overlay after animation
+    setTimeout(() => {
+      if (!overlay.classList.contains('active')) {
+        overlay.remove();
+      }
+    }, 300);
+  }
+}
+
 // Load dashboard when home page is shown
 // Override showPage to load dashboard stats
 const originalShowPage = window.showPage || showPage;
-window.showPage = function(page) {
-  // Hide all pages
-  document.querySelectorAll(".page").forEach((p) => (p.style.display = "none"));
+window.showPage = async function(page) {
+  // Hide all pages with smooth transition
+  document.querySelectorAll(".page").forEach((p) => {
+    p.classList.remove('active');
+    p.style.display = "none";
+  });
+  
   const el = document.getElementById("page-" + page);
-  if (el) el.style.display = "block";
+  if (!el) return;
+  
+  // Show page first
+  el.style.display = "block";
+  
+  // Update title
   const panelTitle = document.getElementById("panelTitle");
   if (panelTitle) {
     panelTitle.textContent =
@@ -1539,15 +1584,38 @@ window.showPage = function(page) {
       "NORTHWEST";
   }
   
+  // Show loading
+  showPageLoading(el);
+  
+  // Wait a bit for smooth transition
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
   // Load data when switching pages
-  if (page === "customers") loadCustomers();
-  else if (page === "rooms") loadRooms();
-  else if (page === "services") loadServices();
-  else if (page === "bookings") loadBookings();
-  else if (page === "invoices") loadInvoices();
-  else if (page === "usage") loadUsage();
-  else if (page === "users") loadUsers();
-  else if (page === "home") loadDashboardStats();
+  try {
+    if (page === "customers") {
+      await loadCustomers();
+    } else if (page === "rooms") {
+      await loadRooms();
+    } else if (page === "services") {
+      await loadServices();
+    } else if (page === "bookings") {
+      await loadBookings();
+    } else if (page === "invoices") {
+      await loadInvoices();
+    } else if (page === "usage") {
+      await loadUsage();
+    } else if (page === "users") {
+      await loadUsers();
+    } else if (page === "home") {
+      await loadDashboardStats();
+    }
+  } catch (error) {
+    console.error('Error loading page data:', error);
+  } finally {
+    // Hide loading and show content with fade-in
+    hidePageLoading(el);
+    el.classList.add('active');
+  }
 };
 
 // Make functions global

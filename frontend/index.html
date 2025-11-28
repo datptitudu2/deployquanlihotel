@@ -321,9 +321,53 @@
       /* Page visibility */
       .page {
         display: none;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
       }
       .page.active {
         display: block;
+        opacity: 1;
+      }
+      .page.loading {
+        opacity: 0.5;
+      }
+      
+      /* Loading overlay */
+      .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      .loading-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+      }
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid var(--blue);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      /* Content container with relative position for loading overlay */
+      .panel .content {
+        position: relative;
       }
 
       /* table style */
@@ -357,6 +401,24 @@
       }
       tbody tr {
         transition: all 0.2s ease;
+        opacity: 0;
+        animation: fadeInRow 0.3s ease forwards;
+      }
+      tbody tr:nth-child(1) { animation-delay: 0.05s; }
+      tbody tr:nth-child(2) { animation-delay: 0.1s; }
+      tbody tr:nth-child(3) { animation-delay: 0.15s; }
+      tbody tr:nth-child(4) { animation-delay: 0.2s; }
+      tbody tr:nth-child(5) { animation-delay: 0.25s; }
+      tbody tr:nth-child(n+6) { animation-delay: 0.3s; }
+      @keyframes fadeInRow {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
       tbody tr:hover {
         background: #f8f9fa;
@@ -525,6 +587,22 @@
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
+        opacity: 0;
+        animation: fadeInCard 0.4s ease forwards;
+      }
+      .stat-card:nth-child(1) { animation-delay: 0.1s; }
+      .stat-card:nth-child(2) { animation-delay: 0.2s; }
+      .stat-card:nth-child(3) { animation-delay: 0.3s; }
+      .stat-card:nth-child(4) { animation-delay: 0.4s; }
+      @keyframes fadeInCard {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
       .stat-card::before {
         content: '';
