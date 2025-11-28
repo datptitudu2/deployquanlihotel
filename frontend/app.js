@@ -248,7 +248,7 @@ function displayRooms(rooms) {
                 <td>${room.SoNguoiToiDa || "-"} người</td>
                 <td><span style="color: ${color}; font-weight: bold;">${status}</span></td>
                 <td style="color: #28a745; font-weight: bold;">${
-                  room.GiaPhong ? room.GiaPhong.toLocaleString('vi-VN') + " đ" : "-"
+                  room.GiaPhong && !isNaN(parseFloat(room.GiaPhong)) ? parseFloat(room.GiaPhong).toLocaleString('vi-VN') + " đ" : "-"
                 }</td>
                 <td class="actions">
                     <button class="btn small primary" onclick="editRoom(${room.MaPhong})" style="margin-right: 6px;">
@@ -284,7 +284,7 @@ function displayServices(services) {
                 <td class="id">${service.MaDV}</td>
                 <td><strong style="color: #0f4aa6;">${service.TenDV || "-"}</strong></td>
                 <td style="color: #28a745; font-weight: bold;">${
-                  service.DonGia ? service.DonGia.toLocaleString('vi-VN') + " đ" : "Miễn phí"
+                  service.DonGia && !isNaN(parseFloat(service.DonGia)) ? parseFloat(service.DonGia).toLocaleString('vi-VN') + " đ" : "Miễn phí"
                 }</td>
                 <td class="actions">
                     <button class="btn small primary" onclick="editService(${service.MaDV})" style="margin-right: 6px;">
@@ -376,7 +376,7 @@ function displayInvoices(invoices) {
       <tr>
         <td class="id">${invoice.MaHD}</td>
         <td>${invoice.NgayLap ? new Date(invoice.NgayLap).toLocaleDateString('vi-VN') : '-'}</td>
-        <td style="color: #28a745; font-weight: bold;">${invoice.TongTien ? invoice.TongTien.toLocaleString('vi-VN') + ' đ' : '0 đ'}</td>
+        <td style="color: #28a745; font-weight: bold;">${invoice.TongTien && !isNaN(parseFloat(invoice.TongTien)) ? parseFloat(invoice.TongTien).toLocaleString('vi-VN') + ' đ' : '0 đ'}</td>
         <td>${phuongThucText[invoice.PhuongThucTT] || invoice.PhuongThucTT}</td>
         <td><span style="color: ${trangThaiColor[invoice.TrangThai] || '#666'}; font-weight: bold;">${trangThaiText[invoice.TrangThai] || invoice.TrangThai}</span></td>
         <td class="actions" style="white-space: nowrap;">
@@ -414,7 +414,7 @@ function displayUsage(usage) {
         <td>#${item.MaDatPhong || '-'}</td>
         <td><strong style="color: #0f4aa6;">${item.TenDV || '-'}</strong></td>
         <td>${item.SoLuong || 1}</td>
-        <td style="color: #28a745; font-weight: bold;">${item.ThanhTien ? item.ThanhTien.toLocaleString('vi-VN') + ' đ' : '0 đ'}</td>
+        <td style="color: #28a745; font-weight: bold;">${item.ThanhTien && !isNaN(parseFloat(item.ThanhTien)) ? parseFloat(item.ThanhTien).toLocaleString('vi-VN') + ' đ' : '0 đ'}</td>
         <td class="actions">
           <button class="btn small danger" onclick="deleteUsage('${item.MaSD}')">
             <i class="fas fa-trash"></i> Xóa
@@ -970,7 +970,7 @@ async function openUsageModal(usage = null) {
       bookings.map(b => `<option value="${b.MaDP}">Đặt phòng #${b.MaDP} - ${b.TenKH || ''}</option>`).join('');
     
     serviceSelect.innerHTML = '<option value="">-- Chọn dịch vụ --</option>' +
-      services.map(s => `<option value="${s.MaDV}">${s.TenDV} - ${s.DonGia?.toLocaleString()}đ</option>`).join('');
+      services.map(s => `<option value="${s.MaDV}">${s.TenDV} - ${s.DonGia && !isNaN(parseFloat(s.DonGia)) ? parseFloat(s.DonGia).toLocaleString('vi-VN') : '0'}đ</option>`).join('');
     
     if (usage) {
       title.textContent = 'Sửa sử dụng dịch vụ';
@@ -1465,7 +1465,7 @@ async function openBookingModal() {
     rooms.filter(r => r.TinhTrang === 'trong' || r.TrangThai === 'Trống').forEach(r => {
       const option = document.createElement('option');
       option.value = r.MaPhong;
-      option.textContent = `${r.SoPhong || r.MaPhong} - ${r.LoaiPhong || 'N/A'} (${r.GiaPhong ? r.GiaPhong.toLocaleString('vi-VN') + ' đ' : 'N/A'})`;
+      option.textContent = `${r.SoPhong || r.MaPhong} - ${r.LoaiPhong || 'N/A'} (${r.GiaPhong && !isNaN(parseFloat(r.GiaPhong)) ? parseFloat(r.GiaPhong).toLocaleString('vi-VN') + ' đ' : 'N/A'})`;
       roomSelect.appendChild(option);
     });
     
