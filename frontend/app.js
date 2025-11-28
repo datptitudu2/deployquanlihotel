@@ -1991,165 +1991,22 @@ window.showPage = async function(page) {
         }
       }
       
-      // Additional check: đảm bảo page có kích thước và không bị che
-      const rect = el.getBoundingClientRect();
-      const computedHeight = window.getComputedStyle(el).height;
-      const computedWidth = window.getComputedStyle(el).width;
-      const hasContent = el.innerHTML.trim().length > 0;
+      // Đơn giản: Đảm bảo .content container được hiển thị
+      const contentContainer = document.querySelector('.content');
+      if (contentContainer) {
+        const contentDisplay = window.getComputedStyle(contentContainer).display;
+        if (contentDisplay === 'none') {
+          contentContainer.style.setProperty('display', 'flex', 'important');
+        }
+      }
       
-      if (finalComputed === 'block' && (rect.height === 0 || rect.width === 0)) {
-        console.warn('⚠️ Page có display:block nhưng không có kích thước! Đang fix...', {
-          page,
-          height: rect.height,
-          width: rect.width,
-          computedHeight,
-          computedWidth,
-          hasContent,
-          contentLength: el.innerHTML.trim().length,
-          childrenCount: el.children.length
-        });
-        
-        // Check parent - tìm parent container thực sự (#pages hoặc .content)
-        // Bỏ qua tất cả .page elements
-        let parent = el.parentElement;
-        let parentLevel = 0;
-        const maxLevel = 5; // Tối đa 5 levels
-        
-        while (parent && parentLevel < maxLevel) {
-          // Nếu tìm thấy #pages hoặc .content, dừng lại
-          if (parent.id === 'pages' || parent.classList.contains('content')) {
-            break;
-          }
-          // Nếu không phải page, cũng dừng lại (đã tìm thấy container)
-          if (!parent.classList.contains('page')) {
-            break;
-          }
-          // Nếu vẫn là page, tiếp tục tìm parent
-          parent = parent.parentElement;
-          parentLevel++;
+      // Đảm bảo #pages container được hiển thị
+      const pagesContainer = document.getElementById('pages');
+      if (pagesContainer) {
+        const pagesDisplay = window.getComputedStyle(pagesContainer).display;
+        if (pagesDisplay === 'none') {
+          pagesContainer.style.setProperty('display', 'block', 'important');
         }
-        
-        // Nếu không tìm thấy, tìm trực tiếp #pages hoặc .content
-        if (!parent || parentLevel >= maxLevel || parent.classList.contains('page')) {
-          const pagesContainer = document.getElementById('pages');
-          const contentContainer = document.querySelector('.content');
-          parent = contentContainer || pagesContainer || el.parentElement;
-          console.warn('⚠️ Không tìm thấy parent container, dùng fallback:', parent?.id || parent?.className);
-        }
-        
-        // CRITICAL: Đảm bảo .content container cũng được hiển thị
-        const contentContainer = document.querySelector('.content');
-        if (contentContainer && contentContainer !== parent) {
-          const contentDisplay = window.getComputedStyle(contentContainer).display;
-          const contentRect = contentContainer.getBoundingClientRect();
-          if (contentDisplay === 'none' || contentRect.height === 0) {
-            console.warn('⚠️ .content container bị ẩn! Đang force hiển thị...');
-            contentContainer.style.setProperty('display', 'flex', 'important');
-            contentContainer.style.setProperty('height', 'auto', 'important');
-            contentContainer.style.setProperty('min-height', '100%', 'important');
-            void contentContainer.offsetHeight; // Force reflow
-          }
-        }
-        
-        if (parent) {
-          const parentDisplay = window.getComputedStyle(parent).display;
-          const parentHeight = window.getComputedStyle(parent).height;
-          const parentRect = parent.getBoundingClientRect();
-          console.log('   - Parent (real):', {
-            tag: parent.tagName,
-            id: parent.id,
-            class: parent.className,
-            display: parentDisplay,
-            height: parentHeight,
-            rectHeight: parentRect.height,
-            rectWidth: parentRect.width,
-            level: parentLevel,
-            isPage: parent.classList.contains('page')
-          });
-          
-          // CRITICAL: Nếu parent bị ẩn, force hiển thị nó
-          if (parentDisplay === 'none' || parentRect.height === 0) {
-            console.warn('⚠️ Parent bị ẩn! Đang force hiển thị...', parent.id || parent.className);
-            // Nếu là .content, force hiển thị
-            if (parent.classList.contains('content')) {
-              parent.style.setProperty('display', 'flex', 'important');
-              parent.style.setProperty('height', 'auto', 'important');
-              parent.style.setProperty('min-height', '100%', 'important');
-            } else if (parent.id === 'pages') {
-              // Nếu là #pages container
-              parent.style.setProperty('display', 'block', 'important');
-              parent.style.setProperty('height', 'auto', 'important');
-              parent.style.setProperty('min-height', '100%', 'important');
-            } else {
-              // Các parent khác
-              parent.style.setProperty('display', 'block', 'important');
-              parent.style.setProperty('height', 'auto', 'important');
-            }
-            
-            // Force reflow
-            void parent.offsetHeight;
-            
-            // Check lại sau khi fix
-            const afterFixDisplay = window.getComputedStyle(parent).display;
-            const afterFixRect = parent.getBoundingClientRect();
-            console.log('   - After fix parent:', {
-              display: afterFixDisplay,
-              rectHeight: afterFixRect.height,
-              rectWidth: afterFixRect.width
-            });
-          }
-        }
-        
-        // Force set min-height và width cho page
-        // Sử dụng parent đã tìm được ở trên
-        let pageMinHeight = '100%';
-        if (parent) {
-          const parentRectAfterFix = parent.getBoundingClientRect();
-          const parentDisplayAfterFix = window.getComputedStyle(parent).display;
-          
-          // Nếu parent vẫn không có height sau khi fix
-          if (parentDisplayAfterFix === 'none' || parentRectAfterFix.height === 0) {
-            // Dùng viewport height
-            pageMinHeight = 'calc(100vh - 200px)';
-          }
-        }
-        
-        // Force set height và width cho page
-        // Nếu min-height không đủ, dùng height trực tiếp
-        el.style.setProperty('min-height', pageMinHeight, 'important');
-        el.style.setProperty('width', '100%', 'important');
-        el.style.setProperty('height', 'auto', 'important');
-        
-        // CRITICAL: Nếu vẫn không có height, force set height cụ thể
-        // Đợi một chút để browser render, sau đó check lại
-        requestAnimationFrame(() => {
-          const checkRect = el.getBoundingClientRect();
-          if (checkRect.height === 0) {
-            console.warn('⚠️ Page vẫn height: 0 sau khi set styles, force set height cụ thể...');
-            // Tính height từ viewport
-            const viewportHeight = window.innerHeight;
-            const headerHeight = document.querySelector('.panel .head')?.offsetHeight || 80;
-            const padding = 48; // 24px top + 24px bottom
-            const calculatedHeight = viewportHeight - headerHeight - padding;
-            el.style.setProperty('height', `${calculatedHeight}px`, 'important');
-            el.style.setProperty('min-height', `${calculatedHeight}px`, 'important');
-            console.log('   - Set height to:', calculatedHeight, 'px');
-          }
-        });
-        
-        // Nếu vẫn không có kích thước sau khi fix, có thể do không có nội dung
-        setTimeout(() => {
-          const newRect = el.getBoundingClientRect();
-          if (newRect.height === 0 || newRect.width === 0) {
-            console.error('❌ Page vẫn không có kích thước sau khi fix!', {
-              page,
-              newHeight: newRect.height,
-              newWidth: newRect.width,
-              hasContent,
-              innerHTML: el.innerHTML.substring(0, 200) // First 200 chars
-            });
-          }
-        }, 100);
       }
     }
     
