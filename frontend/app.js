@@ -1753,16 +1753,22 @@ window.showPage = async function(page) {
     // Show loading (KHÔNG ảnh hưởng đến display của page)
     showPageLoading(el);
     
-    // Đảm bảo display vẫn là block sau showPageLoading - remove và set lại
+    // Đảm bảo display và opacity vẫn đúng sau showPageLoading
     el.style.removeProperty('display');
+    el.style.removeProperty('opacity');
     el.style.setProperty('display', 'block', 'important');
+    el.style.setProperty('opacity', '1', 'important');
+    el.style.setProperty('visibility', 'visible', 'important');
     
     // Wait a bit for smooth transition
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    // Đảm bảo display vẫn là block sau delay - remove và set lại
+    // Đảm bảo display và opacity vẫn đúng sau delay
     el.style.removeProperty('display');
+    el.style.removeProperty('opacity');
     el.style.setProperty('display', 'block', 'important');
+    el.style.setProperty('opacity', '1', 'important');
+    el.style.setProperty('visibility', 'visible', 'important');
     
     // Load data when switching pages
     try {
@@ -1793,15 +1799,19 @@ window.showPage = async function(page) {
     if (el) {
       hidePageLoading(el);
       
-      // CRITICAL: Remove display: none trước khi set display: block
-      // Dùng nhiều cách để đảm bảo remove hoàn toàn
+      // CRITICAL: Remove display: none và opacity: 0 trước khi set
       if (el.style.display === 'none' || el.style.getPropertyValue('display') === 'none') {
         el.style.removeProperty('display');
         el.style.display = ''; // Force remove
       }
+      if (el.style.opacity === '0' || el.style.getPropertyValue('opacity') === '0') {
+        el.style.removeProperty('opacity');
+        el.style.opacity = ''; // Force remove
+      }
       
       // Đảm bảo page vẫn hiển thị sau khi hide loading - dùng setProperty với important
       el.classList.add('active');
+      el.classList.remove('loading'); // Remove loading class để không bị opacity: 0.5
       el.style.setProperty('display', 'block', 'important');
       el.style.setProperty('opacity', '1', 'important');
       el.style.setProperty('visibility', 'visible', 'important');
@@ -1809,17 +1819,26 @@ window.showPage = async function(page) {
       // Force reflow để đảm bảo styles được apply
       void el.offsetHeight;
       
-      // Set lại display sau reflow - remove và set lại để đảm bảo không bị override
+      // Set lại display và opacity sau reflow - remove và set lại để đảm bảo không bị override
       if (el.style.display === 'none') {
         el.style.display = '';
       }
+      if (el.style.opacity === '0') {
+        el.style.opacity = '';
+      }
       el.style.setProperty('display', 'block', 'important');
+      el.style.setProperty('opacity', '1', 'important');
+      el.style.setProperty('visibility', 'visible', 'important');
       
       // Double check sau một frame - remove và set lại
       requestAnimationFrame(() => {
         if (el && el.classList.contains('active')) {
+          el.classList.remove('loading'); // Remove loading class
           if (el.style.display === 'none') {
             el.style.display = '';
+          }
+          if (el.style.opacity === '0') {
+            el.style.opacity = '';
           }
           el.style.setProperty('display', 'block', 'important');
           el.style.setProperty('opacity', '1', 'important');
@@ -1831,10 +1850,16 @@ window.showPage = async function(page) {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           if (el && el.classList.contains('active')) {
+            el.classList.remove('loading'); // Remove loading class
             if (el.style.display === 'none') {
               el.style.display = '';
             }
+            if (el.style.opacity === '0') {
+              el.style.opacity = '';
+            }
             el.style.setProperty('display', 'block', 'important');
+            el.style.setProperty('opacity', '1', 'important');
+            el.style.setProperty('visibility', 'visible', 'important');
           }
         });
       });

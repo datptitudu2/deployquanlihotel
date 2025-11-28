@@ -349,8 +349,14 @@
         visibility: visible !important;
       }
       .page.loading {
-        opacity: 0.5;
-        /* KHÔNG set display: none - chỉ giảm opacity */
+        /* KHÔNG set opacity: 0.5 nữa - để page luôn hiển thị rõ */
+        /* opacity: 0.5; */
+      }
+      /* Đảm bảo active pages luôn có opacity: 1 ngay cả khi có class loading */
+      .page.active.loading {
+        opacity: 1 !important;
+        display: block !important;
+        visibility: visible !important;
       }
       
       /* Loading overlay */
