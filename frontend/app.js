@@ -96,41 +96,56 @@ async function loadRooms() {
 
 async function loadServices() {
   try {
+    console.log("🔄 Đang tải dịch vụ...");
     const response = await fetch(`${API_BASE}/services`);
     const services = await response.json();
+    console.log("✅ Dịch vụ nhận được:", services.length, "items");
+    if (services.length > 0) {
+      console.log("📦 Dịch vụ đầu tiên:", services[0]);
+    }
     displayServices(services);
   } catch (error) {
-    console.error("Lỗi tải dịch vụ:", error);
+    console.error("❌ Lỗi tải dịch vụ:", error);
   }
 }
 
 async function loadBookings() {
   try {
+    console.log("🔄 Đang tải đặt phòng...");
     const response = await fetch(`${API_BASE}/bookings`);
     const bookings = await response.json();
+    console.log("✅ Đặt phòng nhận được:", bookings.length, "items");
+    if (bookings.length > 0) {
+      console.log("📦 Đặt phòng đầu tiên:", bookings[0]);
+    }
     displayBookings(bookings);
   } catch (error) {
-    console.error("Lỗi tải đặt phòng:", error);
+    console.error("❌ Lỗi tải đặt phòng:", error);
   }
 }
 
 async function loadInvoices() {
   try {
+    console.log("🔄 Đang tải hóa đơn...");
     const response = await fetch(`${API_BASE}/invoices`);
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Lỗi tải hóa đơn');
     }
     const invoices = await response.json();
+    console.log("✅ Hóa đơn nhận được:", Array.isArray(invoices) ? invoices.length : 'not array', "items");
+    if (Array.isArray(invoices) && invoices.length > 0) {
+      console.log("📦 Hóa đơn đầu tiên:", invoices[0]);
+    }
     // Đảm bảo invoices là array
     if (Array.isArray(invoices)) {
       displayInvoices(invoices);
     } else {
-      console.error('Response không phải array:', invoices);
+      console.error('❌ Response không phải array:', invoices);
       displayInvoices([]);
     }
   } catch (error) {
-    console.error("Lỗi tải hóa đơn:", error);
+    console.error("❌ Lỗi tải hóa đơn:", error);
     alert("Lỗi tải hóa đơn: " + error.message);
     displayInvoices([]);
   }
@@ -138,21 +153,26 @@ async function loadInvoices() {
 
 async function loadUsage() {
   try {
+    console.log("🔄 Đang tải sử dụng dịch vụ...");
     const response = await fetch(`${API_BASE}/usage`);
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Lỗi tải sử dụng dịch vụ');
     }
     const usage = await response.json();
+    console.log("✅ Sử dụng dịch vụ nhận được:", Array.isArray(usage) ? usage.length : 'not array', "items");
+    if (Array.isArray(usage) && usage.length > 0) {
+      console.log("📦 Sử dụng dịch vụ đầu tiên:", usage[0]);
+    }
     // Đảm bảo usage là array
     if (Array.isArray(usage)) {
       displayUsage(usage);
     } else {
-      console.error('Response không phải array:', usage);
+      console.error('❌ Response không phải array:', usage);
       displayUsage([]);
     }
   } catch (error) {
-    console.error("Lỗi tải sử dụng dịch vụ:", error);
+    console.error("❌ Lỗi tải sử dụng dịch vụ:", error);
     alert("Lỗi tải sử dụng dịch vụ: " + error.message);
     displayUsage([]);
   }
@@ -249,9 +269,14 @@ function displayRooms(rooms) {
 }
 
 function displayServices(services) {
+  console.log("🎨 Bắt đầu hiển thị dịch vụ...");
   const tbody = document.querySelector("#table-services tbody");
-  if (!tbody) return;
+  if (!tbody) {
+    console.error("❌ Không tìm thấy #table-services tbody");
+    return;
+  }
   tbody.innerHTML = "";
+  console.log("✅ Đã clear tbody dịch vụ");
 
   services.forEach((service) => {
     const row = `
@@ -275,12 +300,19 @@ function displayServices(services) {
         `;
     tbody.innerHTML += row;
   });
+
+  console.log("✅ Đã hiển thị xong", services.length, "dịch vụ");
 }
 
 function displayBookings(bookings) {
+  console.log("🎨 Bắt đầu hiển thị đặt phòng...");
   const tbody = document.querySelector("#table-bookings tbody");
-  if (!tbody) return;
+  if (!tbody) {
+    console.error("❌ Không tìm thấy #table-bookings tbody");
+    return;
+  }
   tbody.innerHTML = "";
+  console.log("✅ Đã clear tbody đặt phòng");
 
   bookings.forEach((booking) => {
     const statusColor = {
@@ -311,12 +343,19 @@ function displayBookings(bookings) {
         `;
     tbody.innerHTML += row;
   });
+
+  console.log("✅ Đã hiển thị xong", bookings.length, "đặt phòng");
 }
 
 function displayInvoices(invoices) {
+  console.log("🎨 Bắt đầu hiển thị hóa đơn...");
   const tbody = document.querySelector("#table-invoices tbody");
-  if (!tbody) return;
+  if (!tbody) {
+    console.error("❌ Không tìm thấy #table-invoices tbody");
+    return;
+  }
   tbody.innerHTML = "";
+  console.log("✅ Đã clear tbody hóa đơn");
 
   invoices.forEach((invoice) => {
     const phuongThucText = {
@@ -354,12 +393,19 @@ function displayInvoices(invoices) {
     `;
     tbody.innerHTML += row;
   });
+
+  console.log("✅ Đã hiển thị xong", invoices.length, "hóa đơn");
 }
 
 function displayUsage(usage) {
+  console.log("🎨 Bắt đầu hiển thị sử dụng dịch vụ...");
   const tbody = document.querySelector("#table-usage tbody");
-  if (!tbody) return;
+  if (!tbody) {
+    console.error("❌ Không tìm thấy #table-usage tbody");
+    return;
+  }
   tbody.innerHTML = "";
+  console.log("✅ Đã clear tbody sử dụng dịch vụ");
 
   usage.forEach((item) => {
     const row = `
@@ -378,6 +424,8 @@ function displayUsage(usage) {
     `;
     tbody.innerHTML += row;
   });
+
+  console.log("✅ Đã hiển thị xong", usage.length, "sử dụng dịch vụ");
 }
 
 async function deleteInvoice(invoiceId) {
@@ -984,19 +1032,29 @@ async function handleUsageSubmit(e) {
 // ==================== USERS MANAGEMENT ====================
 async function loadUsers() {
   try {
+    console.log("🔄 Đang tải nhân viên...");
     const response = await fetch(`${API_BASE}/users`);
     const users = await response.json();
+    console.log("✅ Nhân viên nhận được:", users.length, "items");
+    if (users.length > 0) {
+      console.log("📦 Nhân viên đầu tiên:", users[0]);
+    }
     displayUsers(users);
   } catch (error) {
-    console.error("Lỗi tải nhân viên:", error);
+    console.error("❌ Lỗi tải nhân viên:", error);
     alert("Lỗi tải nhân viên: " + error.message);
   }
 }
 
 function displayUsers(users) {
+  console.log("🎨 Bắt đầu hiển thị nhân viên...");
   const tbody = document.querySelector("#table-users tbody");
-  if (!tbody) return;
+  if (!tbody) {
+    console.error("❌ Không tìm thấy #table-users tbody");
+    return;
+  }
   tbody.innerHTML = "";
+  console.log("✅ Đã clear tbody nhân viên");
 
   users.forEach((user) => {
     const vaiTroText = {
