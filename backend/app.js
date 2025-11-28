@@ -5,9 +5,36 @@ require('dotenv').config();
 const app = express();
 
 // CORS configuration
+// Cho phép tất cả origins để hỗ trợ mobile và các domain khác nhau
 const corsOptions = {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5500',
-    credentials: true
+    origin: function (origin, callback) {
+        // Cho phép requests không có origin (mobile apps, Postman, etc.)
+        if (!origin) return callback(null, true);
+        
+        // Trong production, cho phép tất cả origins
+        if (process.env.NODE_ENV === 'production') {
+            return callback(null, true);
+        }
+        
+        // Trong development, cho phép localhost và các origins cụ thể
+        const allowedOrigins = [
+            'http://localhost:5500',
+            'http://localhost:3000',
+            'http://127.0.0.1:5500',
+            'http://127.0.0.1:3000',
+            process.env.FRONTEND_URL
+        ].filter(Boolean);
+        
+        if (allowedOrigins.includes(origin) || !origin) {
+            callback(null, true);
+        } else {
+            // Cho phép tất cả trong development để dễ test
+            callback(null, true);
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 };
 app.use(cors(corsOptions));
 app.use(express.json());
