@@ -595,6 +595,14 @@
         line-height: 1.2;
         word-break: break-word;
         overflow-wrap: break-word;
+        hyphens: auto;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      /* Responsive font size for very long numbers */
+      .stat-value[style*="font-size"] {
+        transition: font-size 0.3s ease;
       }
       .stat-label {
         font-size: 13px;

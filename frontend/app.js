@@ -1290,24 +1290,41 @@ console.log("✅ Tất cả functions đã được khai báo!");
 // ==================== DASHBOARD ====================
 async function loadDashboardStats() {
   try {
-    const [roomsRes, customersRes, bookingsRes] = await Promise.all([
+    const [roomsRes, customersRes, bookingsRes, invoicesRes] = await Promise.all([
       fetch(`${API_BASE}/rooms`),
       fetch(`${API_BASE}/customers`),
-      fetch(`${API_BASE}/bookings`)
+      fetch(`${API_BASE}/bookings`),
+      fetch(`${API_BASE}/invoices`)
     ]);
     
     const rooms = await roomsRes.json();
     const customers = await customersRes.json();
     const bookings = await bookingsRes.json();
+    const invoices = await invoicesRes.json();
     
     // Update stats
     document.getElementById('stat-rooms').textContent = rooms.length;
     document.getElementById('stat-customers').textContent = customers.length;
     document.getElementById('stat-bookings').textContent = bookings.length;
     
-    // Calculate revenue
-    const revenue = bookings.reduce((sum, b) => sum + (parseFloat(b.TongTien) || 0), 0);
-    document.getElementById('stat-revenue').textContent = revenue.toLocaleString('vi-VN') + ' đ';
+    // Calculate revenue from PAID invoices only
+    const revenue = invoices
+      .filter(inv => inv.TrangThai === 'da_thanh_toan')
+      .reduce((sum, inv) => sum + (parseFloat(inv.TongTien) || 0), 0);
+    
+    // Format revenue with proper handling for large numbers
+    const revenueElement = document.getElementById('stat-revenue');
+    const formattedRevenue = revenue.toLocaleString('vi-VN') + ' đ';
+    revenueElement.textContent = formattedRevenue;
+    
+    // Auto-adjust font size if number is too long
+    if (formattedRevenue.length > 20) {
+      revenueElement.style.fontSize = '22px';
+    } else if (formattedRevenue.length > 15) {
+      revenueElement.style.fontSize = '24px';
+    } else {
+      revenueElement.style.fontSize = '28px';
+    }
     
     // Room status stats
     const emptyRooms = rooms.filter(r => r.TinhTrang === 'trong' || r.TrangThai === 'Trống').length;
