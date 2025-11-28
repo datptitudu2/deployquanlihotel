@@ -1759,41 +1759,89 @@ window.showPage = async function(page) {
       }
     });
     
-    // Hide other pages
+    // Hide other pages - ĐẢM BẢO không ảnh hưởng đến page hiện tại
     pagesToHide.forEach((p) => {
-      p.classList.remove('active');
-      p.style.setProperty('display', 'none', 'important');
+      // QUADRUPLE check: không hide page hiện tại
+      if (p.id !== currentPageId && p !== el && p.id && !p.classList.contains('active') || p.id !== currentPageId) {
+        p.classList.remove('active');
+        p.style.setProperty('display', 'none', 'important');
+      }
     });
     
-    // CRITICAL: Force page hiện tại hiển thị lại SAU KHI hide các pages khác
-    // Đảm bảo không bị ảnh hưởng bởi bất kỳ code nào khác
-    el.classList.add('active');
+    // CRITICAL: Đảm bảo page hiện tại LUÔN có class active và display: block
+    // Phải làm SAU KHI hide các pages khác để tránh bị ảnh hưởng
+    if (!el.classList.contains('active')) {
+      console.warn('⚠️ Class active bị thiếu sau khi hide pages! Đang add lại...', page);
+    }
+    el.classList.add('active'); // LUÔN add, không check
     el.style.setProperty('display', 'block', 'important');
     el.style.setProperty('opacity', '1', 'important');
     el.style.setProperty('visibility', 'visible', 'important');
     
-    // Force reflow
+    // Force reflow để đảm bảo styles được apply
     void el.offsetHeight;
     
-    // Final check: đảm bảo computed style là block
-    const computedDisplay = window.getComputedStyle(el).display;
-    if (computedDisplay === 'none') {
-      console.error('❌ CRITICAL: Page bị ẩn sau khi hide other pages!', page, 'Fixing...');
-      // Force remove any display: none
+    // Final check: đảm bảo computed style là block VÀ có class active
+    const finalComputedDisplay = window.getComputedStyle(el).display;
+    const hasActiveClass = el.classList.contains('active');
+    
+    if (finalComputedDisplay === 'none' || !hasActiveClass) {
+      console.error('❌ CRITICAL: Page bị ẩn hoặc thiếu class active!', {
+        page,
+        computedDisplay,
+        hasActiveClass,
+        inlineDisplay: el.style.getPropertyValue('display')
+      });
+      
+      // Force remove ALL display-related properties
       el.style.removeProperty('display');
       el.style.removeProperty('opacity');
       el.style.removeProperty('visibility');
-      // Set lại với !important
+      
+      // Force reflow
+      void el.offsetHeight;
+      
+      // Set lại với !important và class active
       el.classList.add('active');
       el.style.setProperty('display', 'block', 'important');
       el.style.setProperty('opacity', '1', 'important');
       el.style.setProperty('visibility', 'visible', 'important');
+      
       // Force reflow again
       void el.offsetHeight;
-      console.log('   - After fix, computed:', window.getComputedStyle(el).display);
+      
+      const afterFix = window.getComputedStyle(el).display;
+      const afterFixActive = el.classList.contains('active');
+      console.log('   - After fix - computed:', afterFix, 'has active:', afterFixActive);
+      
+      if (afterFix === 'none' || !afterFixActive) {
+        console.error('❌❌❌ VẪN BỊ ẨN SAU KHI FIX! Có thể do CSS hoặc code khác!');
+      }
     }
     
-    console.log('✅ Đã hiển thị page:', page, el, 'display:', el.style.display, 'computed:', window.getComputedStyle(el).display);
+    // CRITICAL: Đảm bảo class active được add TRƯỚC KHI log
+    if (!el.classList.contains('active')) {
+      console.warn('⚠️ Class active bị thiếu! Đang add lại...', page);
+      el.classList.add('active');
+    }
+    
+    // Log với thông tin đầy đủ
+    const logHasActive = el.classList.contains('active');
+    const logInlineDisplay = el.style.getPropertyValue('display');
+    const logComputedDisplay = window.getComputedStyle(el).display;
+    console.log('✅ Đã hiển thị page:', page);
+    console.log('   - has active class:', logHasActive);
+    console.log('   - inline display:', logInlineDisplay);
+    console.log('   - computed display:', logComputedDisplay);
+    console.log('   - element:', el);
+    
+    // Nếu không có class active, force add lại
+    if (!hasActive) {
+      el.classList.add('active');
+      el.style.setProperty('display', 'block', 'important');
+      el.style.setProperty('opacity', '1', 'important');
+      el.style.setProperty('visibility', 'visible', 'important');
+    }
   
     // Update title
     const panelTitle = document.getElementById("panelTitle");
