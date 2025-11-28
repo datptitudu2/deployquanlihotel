@@ -925,13 +925,95 @@
         margin: 0;
       }
 
+      /* Mobile Menu Toggle Button */
+      .mobile-menu-toggle {
+        display: none;
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        z-index: 1001;
+        background: var(--blue);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        width: 45px;
+        height: 45px;
+        font-size: 20px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        align-items: center;
+        justify-content: center;
+      }
+      .mobile-menu-toggle:hover {
+        background: var(--deep);
+      }
+      .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .sidebar-overlay.active {
+        opacity: 1;
+      }
+      .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+      }
+      table {
+        min-width: 800px; /* Ensure table doesn't shrink too much */
+      }
+
       /* responsive */
       @media (max-width: 900px) {
+        .mobile-menu-toggle {
+          display: flex;
+        }
         .layout {
           grid-template-columns: 1fr;
         }
+        .left-card {
+          position: fixed;
+          left: -280px;
+          top: 0;
+          height: 100vh;
+          z-index: 1000;
+          transition: left 0.3s ease;
+          box-shadow: 2px 0 20px rgba(0,0,0,0.3);
+        }
+        .left-card.mobile-open {
+          left: 0;
+        }
+        .sidebar-overlay {
+          display: block;
+        }
+        .panel {
+          margin-left: 0;
+          padding: 60px 12px 20px 12px;
+        }
+        .page-title {
+          font-size: 24px;
+          margin-bottom: 16px;
+        }
         .stats-grid {
           grid-template-columns: 1fr;
+          gap: 12px;
+        }
+        .stat-card {
+          padding: 16px;
+        }
+        .stat-label {
+          font-size: 12px;
+        }
+        .stat-value {
+          font-size: 24px;
         }
         .dashboard-actions {
           flex-direction: column;
@@ -939,16 +1021,110 @@
         .dashboard-actions button {
           width: 100%;
         }
+        .search-bar {
+          width: 100%;
+        }
         .search-bar input {
           width: 100%;
+          font-size: 14px;
         }
         .controls {
           flex-direction: column;
           align-items: stretch;
+          padding: 12px;
         }
-      .filter-buttons {
-        margin-left: 0;
-        flex-wrap: wrap;
+        .filter-buttons {
+          margin-left: 0;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .filter-buttons button {
+          font-size: 13px;
+          padding: 8px 12px;
+        }
+        .table-wrapper {
+          margin: 0 -12px;
+          padding: 0 12px;
+        }
+        table {
+          font-size: 13px;
+        }
+        table th,
+        table td {
+          padding: 10px 8px;
+          white-space: nowrap;
+        }
+        .btn {
+          padding: 8px 14px;
+          font-size: 13px;
+        }
+        .btn.small {
+          padding: 5px 10px;
+          font-size: 12px;
+        }
+        .modal-content {
+          width: 95%;
+          max-width: 95%;
+          margin: 20px auto;
+          padding: 20px;
+        }
+        .modal-header h2 {
+          font-size: 20px;
+        }
+        .form-group {
+          margin-bottom: 16px;
+        }
+        .form-group label {
+          font-size: 13px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+          font-size: 14px;
+          padding: 10px 12px;
+        }
+        .sidebar-header h2 {
+          font-size: 18px;
+        }
+        .sidebar-header .user-info {
+          font-size: 11px;
+        }
+        .nav button {
+          padding: 12px 14px;
+          font-size: 13px;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .panel {
+          padding: 60px 8px 16px 8px;
+        }
+        .page-title {
+          font-size: 20px;
+        }
+        .stat-value {
+          font-size: 20px;
+        }
+        table {
+          font-size: 12px;
+          min-width: 700px;
+        }
+        table th,
+        table td {
+          padding: 8px 6px;
+        }
+        .modal-content {
+          padding: 16px;
+        }
+        .modal-header h2 {
+          font-size: 18px;
+        }
+        .btn {
+          padding: 7px 12px;
+          font-size: 12px;
+        }
+        .controls {
+          padding: 10px;
         }
       }
 
@@ -1035,9 +1211,15 @@
 
     <!-- Main App (hidden until login) -->
     <div class="app" id="mainApp" style="display: none;">
+      <!-- Mobile Menu Toggle -->
+      <button class="mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleMobileMenu()">
+        <i class="fas fa-bars"></i>
+      </button>
+      <!-- Sidebar Overlay for Mobile -->
+      <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileMenu()"></div>
       <div class="layout">
         <!-- LEFT: nav + hero -->
-        <aside class="left-card">
+        <aside class="left-card" id="sidebar">
           <div class="sidebar-header">
             <h2><i class="fas fa-hotel"></i> NORTHWEST HOTEL</h2>
             <div class="user-info" id="userInfo">Đang tải...</div>
@@ -1180,6 +1362,7 @@
                   </div>
                 </div>
 
+                <div class="table-wrapper">
                 <table id="table-customers">
                   <thead>
                     <tr>
@@ -1248,6 +1431,7 @@
                     </button>
                   </div>
                 </div>
+                <div class="table-wrapper">
                 <table id="table-rooms">
                   <thead>
                     <tr>
@@ -1315,6 +1499,7 @@
                     </button>
                   </div>
                 </div>
+                <div class="table-wrapper">
                 <table id="table-services">
                   <thead>
                     <tr>
@@ -1376,6 +1561,7 @@
                     </button>
                   </div>
                 </div>
+                <div class="table-wrapper">
                 <table id="table-bookings">
                   <thead>
                     <tr>
@@ -1428,6 +1614,7 @@
                     </button>
                   </div>
                 </div>
+                <div class="table-wrapper">
                 <table id="table-invoices">
                   <thead>
                     <tr>
@@ -1474,6 +1661,7 @@
                     <button onclick="filterTable('usage','all', this)" class="active">Tất cả</button>
                   </div>
                 </div>
+                <div class="table-wrapper">
                 <table id="table-usage">
                   <thead>
                     <tr>
@@ -1529,6 +1717,7 @@
                     </button>
                   </div>
                 </div>
+                <div class="table-wrapper">
                 <table id="table-users">
                   <thead>
                     <tr>
@@ -2384,6 +2573,70 @@
     
     window.handleLogout = handleLogout;
     window.applyUserPermissions = applyUserPermissions;
+    
+    // Mobile Menu Toggle Functions
+    function toggleMobileMenu() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      const toggleBtn = document.getElementById('mobileMenuToggle');
+      
+      if (sidebar && overlay) {
+        sidebar.classList.toggle('mobile-open');
+        overlay.classList.toggle('active');
+        
+        // Change icon
+        if (toggleBtn) {
+          const icon = toggleBtn.querySelector('i');
+          if (icon) {
+            if (sidebar.classList.contains('mobile-open')) {
+              icon.className = 'fas fa-times';
+            } else {
+              icon.className = 'fas fa-bars';
+            }
+          }
+        }
+      }
+    }
+    
+    function closeMobileMenu() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      const toggleBtn = document.getElementById('mobileMenuToggle');
+      
+      if (sidebar && overlay) {
+        sidebar.classList.remove('mobile-open');
+        overlay.classList.remove('active');
+        
+        // Change icon back
+        if (toggleBtn) {
+          const icon = toggleBtn.querySelector('i');
+          if (icon) {
+            icon.className = 'fas fa-bars';
+          }
+        }
+      }
+    }
+    
+    // Close mobile menu when clicking on nav items
+    document.addEventListener('DOMContentLoaded', function() {
+      const navButtons = document.querySelectorAll('.nav button[data-page]');
+      navButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          // Close mobile menu after a short delay to allow page transition
+          setTimeout(closeMobileMenu, 300);
+        });
+      });
+      
+      // Close mobile menu on window resize if screen becomes large
+      window.addEventListener('resize', function() {
+        if (window.innerWidth > 900) {
+          closeMobileMenu();
+        }
+      });
+    });
+    
+    window.toggleMobileMenu = toggleMobileMenu;
+    window.closeMobileMenu = closeMobileMenu;
   </script>
   <script src="app.js"></script>
   </body>
