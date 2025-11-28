@@ -1836,7 +1836,7 @@ window.showPage = async function(page) {
     console.log('   - element:', el);
     
     // Nếu không có class active, force add lại
-    if (!hasActive) {
+    if (!logHasActive) {
       el.classList.add('active');
       el.style.setProperty('display', 'block', 'important');
       el.style.setProperty('opacity', '1', 'important');
@@ -1992,13 +1992,54 @@ window.showPage = async function(page) {
       const rect = el.getBoundingClientRect();
       const computedHeight = window.getComputedStyle(el).height;
       const computedWidth = window.getComputedStyle(el).width;
+      const hasContent = el.innerHTML.trim().length > 0;
+      
       if (finalComputed === 'block' && (rect.height === 0 || rect.width === 0)) {
-        console.warn('⚠️ Page có display:block nhưng không có kích thước!', {
+        console.warn('⚠️ Page có display:block nhưng không có kích thước! Đang fix...', {
+          page,
           height: rect.height,
           width: rect.width,
           computedHeight,
-          computedWidth
+          computedWidth,
+          hasContent,
+          contentLength: el.innerHTML.trim().length,
+          childrenCount: el.children.length
         });
+        
+        // Check parent
+        const parent = el.parentElement;
+        if (parent) {
+          const parentDisplay = window.getComputedStyle(parent).display;
+          const parentHeight = window.getComputedStyle(parent).height;
+          const parentRect = parent.getBoundingClientRect();
+          console.log('   - Parent:', {
+            tag: parent.tagName,
+            class: parent.className,
+            display: parentDisplay,
+            height: parentHeight,
+            rectHeight: parentRect.height,
+            rectWidth: parentRect.width
+          });
+        }
+        
+        // Force set min-height và width
+        el.style.setProperty('min-height', '100%', 'important');
+        el.style.setProperty('width', '100%', 'important');
+        el.style.setProperty('height', 'auto', 'important');
+        
+        // Nếu vẫn không có kích thước sau khi fix, có thể do không có nội dung
+        setTimeout(() => {
+          const newRect = el.getBoundingClientRect();
+          if (newRect.height === 0 || newRect.width === 0) {
+            console.error('❌ Page vẫn không có kích thước sau khi fix!', {
+              page,
+              newHeight: newRect.height,
+              newWidth: newRect.width,
+              hasContent,
+              innerHTML: el.innerHTML.substring(0, 200) // First 200 chars
+            });
+          }
+        }, 100);
       }
     }
     

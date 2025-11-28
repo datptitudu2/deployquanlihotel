@@ -323,11 +323,15 @@
         display: none;
         opacity: 0;
         transition: opacity 0.3s ease-in-out;
+        min-height: 100%; /* Đảm bảo page có chiều cao tối thiểu */
+        width: 100%; /* Đảm bảo page có chiều rộng */
       }
       .page.active {
         display: block !important;
         opacity: 1 !important;
         visibility: visible !important;
+        min-height: 100% !important; /* Force min-height khi active */
+        width: 100% !important; /* Force width khi active */
       }
       /* Override ANY display: none for active pages - CRITICAL - Highest specificity */
       /* Match various forms of display: none in inline styles */
