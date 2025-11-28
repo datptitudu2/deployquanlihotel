@@ -327,6 +327,14 @@
       .page.active {
         display: block !important;
         opacity: 1 !important;
+        visibility: visible !important;
+      }
+      /* Override ANY display: none for active pages - CRITICAL */
+      .page.active[style*="display: none"],
+      .page.active[style*="display:none"] {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
       }
       /* Ensure page is visible when display is set inline */
       .page[style*="display: block"] {

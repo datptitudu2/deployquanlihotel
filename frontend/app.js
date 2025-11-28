@@ -1616,17 +1616,7 @@ window.showPage = async function(page) {
   let el = null;
   
   try {
-    // Hide all pages with smooth transition
-    document.querySelectorAll(".page").forEach((p) => {
-      if (p.id !== "page-" + page) {
-        p.classList.remove('active');
-        p.style.setProperty('display', 'none', 'important');
-      } else {
-        // Đảm bảo page hiện tại KHÔNG bị ẩn - remove display: none nếu có
-        p.style.removeProperty('display');
-      }
-    });
-    
+    // QUAN TRỌNG: Tìm và set display: block cho page hiện tại TRƯỚC khi hide các pages khác
     el = document.getElementById("page-" + page);
     if (!el) {
       console.error('❌ Không tìm thấy page:', 'page-' + page);
@@ -1634,32 +1624,36 @@ window.showPage = async function(page) {
       return;
     }
     
-    // CRITICAL: Remove display: none trước khi set display: block
-    // Dùng cả removeProperty và set trực tiếp để đảm bảo
+    // CRITICAL: Set display: block cho page hiện tại TRƯỚC
+    // Remove display: none nếu có
     if (el.style.display === 'none' || el.style.getPropertyValue('display') === 'none') {
       el.style.removeProperty('display');
-      // Force remove bằng cách set empty string
       el.style.display = '';
     }
     
-    // Show page - SỬA: Thêm class active và set display với !important
+    // Set display: block với !important TRƯỚC
     el.classList.add('active');
     el.style.setProperty('display', 'block', 'important');
     el.style.setProperty('opacity', '1', 'important');
     el.style.setProperty('visibility', 'visible', 'important');
     
-    // Double check - nếu vẫn có display: none, force remove
-    if (el.style.display === 'none') {
-      el.style.display = '';
-      el.style.setProperty('display', 'block', 'important');
-    }
-    
     // Force immediate reflow để đảm bảo styles được apply
     void el.offsetHeight;
     
-    // Đảm bảo display vẫn là block sau reflow - remove và set lại
-    el.style.removeProperty('display');
-    el.style.setProperty('display', 'block', 'important');
+    // SAU ĐÓ mới hide các pages khác
+    document.querySelectorAll(".page").forEach((p) => {
+      if (p.id !== "page-" + page) {
+        p.classList.remove('active');
+        p.style.setProperty('display', 'none', 'important');
+      }
+    });
+    
+    // Double check sau reflow - đảm bảo display vẫn là block
+    if (el.style.display === 'none' || el.style.getPropertyValue('display') === 'none') {
+      el.style.removeProperty('display');
+      el.style.display = '';
+      el.style.setProperty('display', 'block', 'important');
+    }
     
     console.log('✅ Đã hiển thị page:', page, el, 'display:', el.style.display, 'computed:', window.getComputedStyle(el).display);
   
