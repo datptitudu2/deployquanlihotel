@@ -320,13 +320,18 @@
 
       /* Page visibility */
       .page {
-        display: none;
+        display: none !important;
         opacity: 0;
         transition: opacity 0.3s ease-in-out;
       }
       .page.active {
-        display: block;
+        display: block !important;
         opacity: 1;
+      }
+      /* Ensure page is visible when display is set inline */
+      .page[style*="display: block"] {
+        display: block !important;
+        opacity: 1 !important;
       }
       .page.loading {
         opacity: 0.5;

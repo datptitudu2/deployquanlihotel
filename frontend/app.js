@@ -1256,9 +1256,18 @@ function generateId(kind) {
 // ==================== NAVIGATION ====================
 // Function này sẽ được override ở cuối file
 function showPage(page) {
-  document.querySelectorAll(".page").forEach((p) => (p.style.display = "none"));
+  console.log('🔄 showPage (old) called with:', page);
+  document.querySelectorAll(".page").forEach((p) => {
+    p.style.display = "none";
+    p.classList.remove('active');
+  });
   const el = document.getElementById("page-" + page);
-  if (el) el.style.display = "block";
+  if (el) {
+    el.style.display = "block";
+    el.classList.add('active');
+    el.style.opacity = "1";
+    console.log('✅ Đã hiển thị page (old):', page, el);
+  }
   const panelTitle = document.getElementById("panelTitle");
   if (panelTitle) {
     panelTitle.textContent =
@@ -1271,6 +1280,9 @@ function showPage(page) {
   else if (page === "rooms") loadRooms();
   else if (page === "services") loadServices();
   else if (page === "bookings") loadBookings();
+  else if (page === "invoices") loadInvoices();
+  else if (page === "usage") loadUsage();
+  else if (page === "users") loadUsers();
   else if (page === "home") loadDashboardStats();
 }
 
@@ -1589,6 +1601,8 @@ function hidePageLoading(pageElement) {
 // Override showPage to load dashboard stats
 const originalShowPage = window.showPage || showPage;
 window.showPage = async function(page) {
+  console.log('🔄 showPage called with:', page);
+  
   // Hide all pages with smooth transition
   document.querySelectorAll(".page").forEach((p) => {
     p.classList.remove('active');
@@ -1596,10 +1610,17 @@ window.showPage = async function(page) {
   });
   
   const el = document.getElementById("page-" + page);
-  if (!el) return;
+  if (!el) {
+    console.error('❌ Không tìm thấy page:', 'page-' + page);
+    return;
+  }
   
-  // Show page first
+  // Show page - SỬA: Thêm class active và set display
+  el.classList.add('active');
   el.style.display = "block";
+  el.style.opacity = "1";
+  
+  console.log('✅ Đã hiển thị page:', page, el);
   
   // Update title
   const panelTitle = document.getElementById("panelTitle");
