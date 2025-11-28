@@ -1096,6 +1096,8 @@ function displayUsers(users) {
     `;
     tbody.innerHTML += row;
   });
+
+  console.log("✅ Đã hiển thị xong", users.length, "nhân viên");
 }
 
 let editingUserId = null;
