@@ -2009,12 +2009,32 @@ window.showPage = async function(page) {
           childrenCount: el.children.length
         });
         
-        // Check parent - tìm parent thực sự (không phải page khác)
+        // Check parent - tìm parent container thực sự (#pages hoặc .content)
+        // Bỏ qua tất cả .page elements
         let parent = el.parentElement;
         let parentLevel = 0;
-        while (parent && parent.classList.contains('page') && parentLevel < 3) {
+        const maxLevel = 5; // Tối đa 5 levels
+        
+        while (parent && parentLevel < maxLevel) {
+          // Nếu tìm thấy #pages hoặc .content, dừng lại
+          if (parent.id === 'pages' || parent.classList.contains('content')) {
+            break;
+          }
+          // Nếu không phải page, cũng dừng lại (đã tìm thấy container)
+          if (!parent.classList.contains('page')) {
+            break;
+          }
+          // Nếu vẫn là page, tiếp tục tìm parent
           parent = parent.parentElement;
           parentLevel++;
+        }
+        
+        // Nếu không tìm thấy, tìm trực tiếp #pages hoặc .content
+        if (!parent || parentLevel >= maxLevel || parent.classList.contains('page')) {
+          const pagesContainer = document.getElementById('pages');
+          const contentContainer = document.querySelector('.content');
+          parent = pagesContainer || contentContainer || el.parentElement;
+          console.warn('⚠️ Không tìm thấy parent container, dùng fallback:', parent?.id || parent?.className);
         }
         
         if (parent) {
@@ -2023,30 +2043,46 @@ window.showPage = async function(page) {
           const parentRect = parent.getBoundingClientRect();
           console.log('   - Parent (real):', {
             tag: parent.tagName,
+            id: parent.id,
             class: parent.className,
             display: parentDisplay,
             height: parentHeight,
             rectHeight: parentRect.height,
             rectWidth: parentRect.width,
-            level: parentLevel
+            level: parentLevel,
+            isPage: parent.classList.contains('page')
           });
           
           // CRITICAL: Nếu parent bị ẩn, force hiển thị nó
           if (parentDisplay === 'none' || parentRect.height === 0) {
-            console.warn('⚠️ Parent bị ẩn! Đang force hiển thị...');
+            console.warn('⚠️ Parent bị ẩn! Đang force hiển thị...', parent.id || parent.className);
             // Nếu là .content, force hiển thị
             if (parent.classList.contains('content')) {
               parent.style.setProperty('display', 'flex', 'important');
               parent.style.setProperty('height', 'auto', 'important');
               parent.style.setProperty('min-height', '100%', 'important');
             } else if (parent.id === 'pages') {
+              // Nếu là #pages container
               parent.style.setProperty('display', 'block', 'important');
               parent.style.setProperty('height', 'auto', 'important');
+              parent.style.setProperty('min-height', '100%', 'important');
             } else {
               // Các parent khác
               parent.style.setProperty('display', 'block', 'important');
               parent.style.setProperty('height', 'auto', 'important');
             }
+            
+            // Force reflow
+            void parent.offsetHeight;
+            
+            // Check lại sau khi fix
+            const afterFixDisplay = window.getComputedStyle(parent).display;
+            const afterFixRect = parent.getBoundingClientRect();
+            console.log('   - After fix parent:', {
+              display: afterFixDisplay,
+              rectHeight: afterFixRect.height,
+              rectWidth: afterFixRect.width
+            });
           }
         }
         
