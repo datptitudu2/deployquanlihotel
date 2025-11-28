@@ -1709,14 +1709,11 @@ window.showPage = async function(page) {
       return;
     }
     
-    // CRITICAL: Set display: block cho page hiện tại TRƯỚC
-    // Remove display: none nếu có
-    if (el.style.display === 'none' || el.style.getPropertyValue('display') === 'none') {
-      el.style.removeProperty('display');
-      el.style.display = '';
-    }
+    // CRITICAL: Set display: block cho page hiện tại TRƯỚC khi hide các pages khác
+    // Store current page ID để tránh bị hide nhầm
+    const currentPageId = "page-" + page;
     
-    // Set display: block với !important TRƯỚC
+    // Set display: block với !important TRƯỚC - KHÔNG remove property trước
     el.classList.add('active');
     el.style.setProperty('display', 'block', 'important');
     el.style.setProperty('opacity', '1', 'important');
@@ -1725,19 +1722,23 @@ window.showPage = async function(page) {
     // Force immediate reflow để đảm bảo styles được apply
     void el.offsetHeight;
     
-    // SAU ĐÓ mới hide các pages khác
+    // SAU ĐÓ mới hide các pages khác - đảm bảo không hide page hiện tại
     document.querySelectorAll(".page").forEach((p) => {
-      if (p.id !== "page-" + page) {
+      // Double check: không hide page hiện tại
+      if (p.id !== currentPageId && p !== el) {
         p.classList.remove('active');
         p.style.setProperty('display', 'none', 'important');
       }
     });
     
-    // Double check sau reflow - đảm bảo display vẫn là block
-    if (el.style.display === 'none' || el.style.getPropertyValue('display') === 'none') {
-      el.style.removeProperty('display');
-      el.style.display = '';
+    // Triple check: đảm bảo page hiện tại vẫn hiển thị
+    const computedDisplay = window.getComputedStyle(el).display;
+    if (computedDisplay === 'none' || el.style.getPropertyValue('display') === 'none') {
+      console.warn('⚠️ Page bị ẩn, đang fix lại...', page);
       el.style.setProperty('display', 'block', 'important');
+      el.style.setProperty('opacity', '1', 'important');
+      el.style.setProperty('visibility', 'visible', 'important');
+      el.classList.add('active');
     }
     
     console.log('✅ Đã hiển thị page:', page, el, 'display:', el.style.display, 'computed:', window.getComputedStyle(el).display);
@@ -1753,22 +1754,20 @@ window.showPage = async function(page) {
     // Show loading (KHÔNG ảnh hưởng đến display của page)
     showPageLoading(el);
     
-    // Đảm bảo display và opacity vẫn đúng sau showPageLoading
-    el.style.removeProperty('display');
-    el.style.removeProperty('opacity');
+    // Đảm bảo display và opacity vẫn đúng sau showPageLoading - KHÔNG remove, chỉ set lại
     el.style.setProperty('display', 'block', 'important');
     el.style.setProperty('opacity', '1', 'important');
     el.style.setProperty('visibility', 'visible', 'important');
+    el.classList.add('active');
     
     // Wait a bit for smooth transition
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    // Đảm bảo display và opacity vẫn đúng sau delay
-    el.style.removeProperty('display');
-    el.style.removeProperty('opacity');
+    // Đảm bảo display và opacity vẫn đúng sau delay - KHÔNG remove, chỉ set lại
     el.style.setProperty('display', 'block', 'important');
     el.style.setProperty('opacity', '1', 'important');
     el.style.setProperty('visibility', 'visible', 'important');
+    el.classList.add('active');
     
     // Load data when switching pages
     try {
@@ -1799,17 +1798,11 @@ window.showPage = async function(page) {
     if (el) {
       hidePageLoading(el);
       
-      // CRITICAL: Remove display: none và opacity: 0 trước khi set
-      if (el.style.display === 'none' || el.style.getPropertyValue('display') === 'none') {
-        el.style.removeProperty('display');
-        el.style.display = ''; // Force remove
-      }
-      if (el.style.opacity === '0' || el.style.getPropertyValue('opacity') === '0') {
-        el.style.removeProperty('opacity');
-        el.style.opacity = ''; // Force remove
-      }
+      // Hide loading overlay
+      hidePageLoading(el);
       
-      // Đảm bảo page vẫn hiển thị sau khi hide loading - dùng setProperty với important
+      // CRITICAL: Đảm bảo page vẫn hiển thị sau khi hide loading
+      // KHÔNG remove property - chỉ set lại để đảm bảo không bị override
       el.classList.add('active');
       el.classList.remove('loading'); // Remove loading class để không bị opacity: 0.5
       el.style.setProperty('display', 'block', 'important');
@@ -1819,30 +1812,26 @@ window.showPage = async function(page) {
       // Force reflow để đảm bảo styles được apply
       void el.offsetHeight;
       
-      // Set lại display và opacity sau reflow - remove và set lại để đảm bảo không bị override
-      if (el.style.display === 'none') {
-        el.style.display = '';
+      // Double check sau reflow - đảm bảo vẫn hiển thị
+      const computedDisplay = window.getComputedStyle(el).display;
+      if (computedDisplay === 'none') {
+        console.warn('⚠️ Page bị ẩn sau hidePageLoading, đang fix lại...', page);
+        el.style.setProperty('display', 'block', 'important');
+        el.style.setProperty('opacity', '1', 'important');
+        el.style.setProperty('visibility', 'visible', 'important');
+        el.classList.add('active');
       }
-      if (el.style.opacity === '0') {
-        el.style.opacity = '';
-      }
-      el.style.setProperty('display', 'block', 'important');
-      el.style.setProperty('opacity', '1', 'important');
-      el.style.setProperty('visibility', 'visible', 'important');
       
-      // Double check sau một frame - remove và set lại
+      // Double check sau một frame
       requestAnimationFrame(() => {
         if (el && el.classList.contains('active')) {
-          el.classList.remove('loading'); // Remove loading class
-          if (el.style.display === 'none') {
-            el.style.display = '';
+          el.classList.remove('loading');
+          const computed = window.getComputedStyle(el).display;
+          if (computed === 'none') {
+            el.style.setProperty('display', 'block', 'important');
+            el.style.setProperty('opacity', '1', 'important');
+            el.style.setProperty('visibility', 'visible', 'important');
           }
-          if (el.style.opacity === '0') {
-            el.style.opacity = '';
-          }
-          el.style.setProperty('display', 'block', 'important');
-          el.style.setProperty('opacity', '1', 'important');
-          el.style.setProperty('visibility', 'visible', 'important');
         }
       });
       
@@ -1850,21 +1839,42 @@ window.showPage = async function(page) {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           if (el && el.classList.contains('active')) {
-            el.classList.remove('loading'); // Remove loading class
-            if (el.style.display === 'none') {
-              el.style.display = '';
+            el.classList.remove('loading');
+            const computed = window.getComputedStyle(el).display;
+            if (computed === 'none') {
+              el.style.setProperty('display', 'block', 'important');
+              el.style.setProperty('opacity', '1', 'important');
+              el.style.setProperty('visibility', 'visible', 'important');
             }
-            if (el.style.opacity === '0') {
-              el.style.opacity = '';
-            }
-            el.style.setProperty('display', 'block', 'important');
-            el.style.setProperty('opacity', '1', 'important');
-            el.style.setProperty('visibility', 'visible', 'important');
           }
         });
       });
       
-      console.log('✅ Final state - page:', page, 'display:', el.style.display, 'active:', el.classList.contains('active'), 'computed:', window.getComputedStyle(el).display);
+      // Final check và log chi tiết
+      const finalComputed = window.getComputedStyle(el).display;
+      const finalInline = el.style.getPropertyValue('display');
+      const hasActive = el.classList.contains('active');
+      const hasLoading = el.classList.contains('loading');
+      
+      console.log('✅ Final state - page:', page);
+      console.log('   - inline display:', finalInline);
+      console.log('   - computed display:', finalComputed);
+      console.log('   - has active class:', hasActive);
+      console.log('   - has loading class:', hasLoading);
+      console.log('   - element:', el);
+      
+      // Nếu vẫn bị ẩn, force hiển thị lại
+      if (finalComputed === 'none' || !hasActive) {
+        console.error('❌ Page bị ẩn sau tất cả checks! Đang force hiển thị...', page);
+        el.classList.add('active');
+        el.classList.remove('loading');
+        el.style.setProperty('display', 'block', 'important');
+        el.style.setProperty('opacity', '1', 'important');
+        el.style.setProperty('visibility', 'visible', 'important');
+        // Force reflow
+        void el.offsetHeight;
+        console.log('   - After fix, computed:', window.getComputedStyle(el).display);
+      }
     }
     
     showPageInProgress = false;

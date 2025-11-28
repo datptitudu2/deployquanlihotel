@@ -329,9 +329,11 @@
         opacity: 1 !important;
         visibility: visible !important;
       }
-      /* Override ANY display: none for active pages - CRITICAL */
+      /* Override ANY display: none for active pages - CRITICAL - Highest specificity */
       .page.active[style*="display: none"],
-      .page.active[style*="display:none"] {
+      .page.active[style*="display:none"],
+      .page.active[style*="display: none !important"],
+      .page.active[style*="display:none !important"] {
         display: block !important;
         opacity: 1 !important;
         visibility: visible !important;
@@ -341,9 +343,11 @@
         display: block !important;
         opacity: 1 !important;
       }
-      /* Force visibility for active pages */
+      /* Force visibility for active pages - Highest priority */
       .page.active[style*="display: block"],
-      .page.active[style*="display:block"] {
+      .page.active[style*="display:block"],
+      .page.active[style*="display: block !important"],
+      .page.active[style*="display:block !important"] {
         display: block !important;
         opacity: 1 !important;
         visibility: visible !important;
@@ -356,6 +360,12 @@
       .page.active.loading {
         opacity: 1 !important;
         display: block !important;
+        visibility: visible !important;
+      }
+      /* CRITICAL: Force display block for active pages regardless of inline styles */
+      div.page.active {
+        display: block !important;
+        opacity: 1 !important;
         visibility: visible !important;
       }
       
