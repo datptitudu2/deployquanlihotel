@@ -1983,9 +1983,12 @@ window.showPage = async function(page) {
         if (afterFix === 'none') {
           console.error('❌❌❌ VẪN BỊ ẨN SAU KHI FIX! Có thể do CSS hoặc code khác đang override!');
         }
-      } else if (!hasActive) {
-        // Nếu không có active class, thêm lại
-        el.classList.add('active');
+      } else {
+        // Đảm bảo có active class
+        const finalHasActive = el.classList.contains('active');
+        if (!finalHasActive) {
+          el.classList.add('active');
+        }
       }
       
       // Additional check: đảm bảo page có kích thước và không bị che
@@ -2023,7 +2026,17 @@ window.showPage = async function(page) {
         }
         
         // Force set min-height và width
-        el.style.setProperty('min-height', '100%', 'important');
+        // Nếu parent có height, dùng 100%, nếu không dùng viewport height
+        const parentEl = el.parentElement;
+        let minHeight = '100%';
+        if (parentEl) {
+          const parentRect = parentEl.getBoundingClientRect();
+          if (parentRect.height === 0) {
+            // Parent không có height, dùng viewport height
+            minHeight = 'calc(100vh - 200px)'; // Trừ đi header và padding
+          }
+        }
+        el.style.setProperty('min-height', minHeight, 'important');
         el.style.setProperty('width', '100%', 'important');
         el.style.setProperty('height', 'auto', 'important');
         
