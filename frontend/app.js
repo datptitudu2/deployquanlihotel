@@ -96,56 +96,41 @@ async function loadRooms() {
 
 async function loadServices() {
   try {
-    console.log("🔄 Đang tải dịch vụ...");
     const response = await fetch(`${API_BASE}/services`);
     const services = await response.json();
-    console.log("✅ Dịch vụ nhận được:", services.length, "items");
-    if (services.length > 0) {
-      console.log("📦 Dịch vụ đầu tiên:", services[0]);
-    }
     displayServices(services);
   } catch (error) {
-    console.error("❌ Lỗi tải dịch vụ:", error);
+    console.error("Lỗi tải dịch vụ:", error);
   }
 }
 
 async function loadBookings() {
   try {
-    console.log("🔄 Đang tải đặt phòng...");
     const response = await fetch(`${API_BASE}/bookings`);
     const bookings = await response.json();
-    console.log("✅ Đặt phòng nhận được:", bookings.length, "items");
-    if (bookings.length > 0) {
-      console.log("📦 Đặt phòng đầu tiên:", bookings[0]);
-    }
     displayBookings(bookings);
   } catch (error) {
-    console.error("❌ Lỗi tải đặt phòng:", error);
+    console.error("Lỗi tải đặt phòng:", error);
   }
 }
 
 async function loadInvoices() {
   try {
-    console.log("🔄 Đang tải hóa đơn...");
     const response = await fetch(`${API_BASE}/invoices`);
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Lỗi tải hóa đơn');
     }
     const invoices = await response.json();
-    console.log("✅ Hóa đơn nhận được:", Array.isArray(invoices) ? invoices.length : 'not array', "items");
-    if (Array.isArray(invoices) && invoices.length > 0) {
-      console.log("📦 Hóa đơn đầu tiên:", invoices[0]);
-    }
     // Đảm bảo invoices là array
     if (Array.isArray(invoices)) {
       displayInvoices(invoices);
     } else {
-      console.error('❌ Response không phải array:', invoices);
+      console.error('Response không phải array:', invoices);
       displayInvoices([]);
     }
   } catch (error) {
-    console.error("❌ Lỗi tải hóa đơn:", error);
+    console.error("Lỗi tải hóa đơn:", error);
     alert("Lỗi tải hóa đơn: " + error.message);
     displayInvoices([]);
   }
@@ -153,26 +138,21 @@ async function loadInvoices() {
 
 async function loadUsage() {
   try {
-    console.log("🔄 Đang tải sử dụng dịch vụ...");
     const response = await fetch(`${API_BASE}/usage`);
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Lỗi tải sử dụng dịch vụ');
     }
     const usage = await response.json();
-    console.log("✅ Sử dụng dịch vụ nhận được:", Array.isArray(usage) ? usage.length : 'not array', "items");
-    if (Array.isArray(usage) && usage.length > 0) {
-      console.log("📦 Sử dụng dịch vụ đầu tiên:", usage[0]);
-    }
     // Đảm bảo usage là array
     if (Array.isArray(usage)) {
       displayUsage(usage);
     } else {
-      console.error('❌ Response không phải array:', usage);
+      console.error('Response không phải array:', usage);
       displayUsage([]);
     }
   } catch (error) {
-    console.error("❌ Lỗi tải sử dụng dịch vụ:", error);
+    console.error("Lỗi tải sử dụng dịch vụ:", error);
     alert("Lỗi tải sử dụng dịch vụ: " + error.message);
     displayUsage([]);
   }
@@ -223,20 +203,8 @@ function displayRooms(rooms) {
   const tbody = document.querySelector("#table-rooms tbody");
   if (!tbody) {
     console.error("❌ Không tìm thấy #table-rooms tbody");
-    const table = document.querySelector("#table-rooms");
-    console.error("   - Table element:", table);
-    console.error("   - Page element:", document.getElementById("page-rooms"));
     return;
   }
-
-  // Check if table is visible
-  const table = document.querySelector("#table-rooms");
-  const tableDisplay = window.getComputedStyle(table).display;
-  const tableWrapper = table?.closest('.table-wrapper');
-  const wrapperDisplay = tableWrapper ? window.getComputedStyle(tableWrapper).display : 'N/A';
-  console.log("   - Table display:", tableDisplay);
-  console.log("   - Table wrapper display:", wrapperDisplay);
-  console.log("   - Tbody found:", !!tbody);
 
   tbody.innerHTML = "";
   console.log("✅ Đã clear tbody phòng");
@@ -260,7 +228,7 @@ function displayRooms(rooms) {
                 <td>${room.SoNguoiToiDa || "-"} người</td>
                 <td><span style="color: ${color}; font-weight: bold;">${status}</span></td>
                 <td style="color: #28a745; font-weight: bold;">${
-                  room.GiaPhong && !isNaN(parseFloat(room.GiaPhong)) ? parseFloat(room.GiaPhong).toLocaleString('vi-VN') + " đ" : "-"
+                  room.GiaPhong ? room.GiaPhong.toLocaleString('vi-VN') + " đ" : "-"
                 }</td>
                 <td class="actions">
                     <button class="btn small primary" onclick="editRoom(${room.MaPhong})" style="margin-right: 6px;">
@@ -278,32 +246,12 @@ function displayRooms(rooms) {
   });
 
   console.log("✅ Đã hiển thị xong", rooms.length, "phòng");
-  
-  // Final check: verify rows were added
-  const rows = tbody.querySelectorAll('tr');
-  console.log("   - Số rows trong tbody:", rows.length);
-  if (rows.length === 0) {
-    console.error("❌ CRITICAL: Không có rows nào được thêm vào tbody!");
-  } else {
-    console.log("   - Row đầu tiên:", rows[0]);
-  }
-  
-  // Check table visibility again
-  const finalTableDisplay = window.getComputedStyle(table).display;
-  if (finalTableDisplay === 'none') {
-    console.error("❌ CRITICAL: Table bị ẩn (display=none)!");
-  }
 }
 
 function displayServices(services) {
-  console.log("🎨 Bắt đầu hiển thị dịch vụ...");
   const tbody = document.querySelector("#table-services tbody");
-  if (!tbody) {
-    console.error("❌ Không tìm thấy #table-services tbody");
-    return;
-  }
+  if (!tbody) return;
   tbody.innerHTML = "";
-  console.log("✅ Đã clear tbody dịch vụ");
 
   services.forEach((service) => {
     const row = `
@@ -311,7 +259,7 @@ function displayServices(services) {
                 <td class="id">${service.MaDV}</td>
                 <td><strong style="color: #0f4aa6;">${service.TenDV || "-"}</strong></td>
                 <td style="color: #28a745; font-weight: bold;">${
-                  service.DonGia && !isNaN(parseFloat(service.DonGia)) ? parseFloat(service.DonGia).toLocaleString('vi-VN') + " đ" : "Miễn phí"
+                  service.DonGia ? service.DonGia.toLocaleString('vi-VN') + " đ" : "Miễn phí"
                 }</td>
                 <td class="actions">
                     <button class="btn small primary" onclick="editService(${service.MaDV})" style="margin-right: 6px;">
@@ -327,19 +275,12 @@ function displayServices(services) {
         `;
     tbody.innerHTML += row;
   });
-
-  console.log("✅ Đã hiển thị xong", services.length, "dịch vụ");
 }
 
 function displayBookings(bookings) {
-  console.log("🎨 Bắt đầu hiển thị đặt phòng...");
   const tbody = document.querySelector("#table-bookings tbody");
-  if (!tbody) {
-    console.error("❌ Không tìm thấy #table-bookings tbody");
-    return;
-  }
+  if (!tbody) return;
   tbody.innerHTML = "";
-  console.log("✅ Đã clear tbody đặt phòng");
 
   bookings.forEach((booking) => {
     const statusColor = {
@@ -370,19 +311,12 @@ function displayBookings(bookings) {
         `;
     tbody.innerHTML += row;
   });
-
-  console.log("✅ Đã hiển thị xong", bookings.length, "đặt phòng");
 }
 
 function displayInvoices(invoices) {
-  console.log("🎨 Bắt đầu hiển thị hóa đơn...");
   const tbody = document.querySelector("#table-invoices tbody");
-  if (!tbody) {
-    console.error("❌ Không tìm thấy #table-invoices tbody");
-    return;
-  }
+  if (!tbody) return;
   tbody.innerHTML = "";
-  console.log("✅ Đã clear tbody hóa đơn");
 
   invoices.forEach((invoice) => {
     const phuongThucText = {
@@ -403,7 +337,7 @@ function displayInvoices(invoices) {
       <tr>
         <td class="id">${invoice.MaHD}</td>
         <td>${invoice.NgayLap ? new Date(invoice.NgayLap).toLocaleDateString('vi-VN') : '-'}</td>
-        <td style="color: #28a745; font-weight: bold;">${invoice.TongTien && !isNaN(parseFloat(invoice.TongTien)) ? parseFloat(invoice.TongTien).toLocaleString('vi-VN') + ' đ' : '0 đ'}</td>
+        <td style="color: #28a745; font-weight: bold;">${invoice.TongTien ? invoice.TongTien.toLocaleString('vi-VN') + ' đ' : '0 đ'}</td>
         <td>${phuongThucText[invoice.PhuongThucTT] || invoice.PhuongThucTT}</td>
         <td><span style="color: ${trangThaiColor[invoice.TrangThai] || '#666'}; font-weight: bold;">${trangThaiText[invoice.TrangThai] || invoice.TrangThai}</span></td>
         <td class="actions" style="white-space: nowrap;">
@@ -420,19 +354,12 @@ function displayInvoices(invoices) {
     `;
     tbody.innerHTML += row;
   });
-
-  console.log("✅ Đã hiển thị xong", invoices.length, "hóa đơn");
 }
 
 function displayUsage(usage) {
-  console.log("🎨 Bắt đầu hiển thị sử dụng dịch vụ...");
   const tbody = document.querySelector("#table-usage tbody");
-  if (!tbody) {
-    console.error("❌ Không tìm thấy #table-usage tbody");
-    return;
-  }
+  if (!tbody) return;
   tbody.innerHTML = "";
-  console.log("✅ Đã clear tbody sử dụng dịch vụ");
 
   usage.forEach((item) => {
     const row = `
@@ -441,7 +368,7 @@ function displayUsage(usage) {
         <td>#${item.MaDatPhong || '-'}</td>
         <td><strong style="color: #0f4aa6;">${item.TenDV || '-'}</strong></td>
         <td>${item.SoLuong || 1}</td>
-        <td style="color: #28a745; font-weight: bold;">${item.ThanhTien && !isNaN(parseFloat(item.ThanhTien)) ? parseFloat(item.ThanhTien).toLocaleString('vi-VN') + ' đ' : '0 đ'}</td>
+        <td style="color: #28a745; font-weight: bold;">${item.ThanhTien ? item.ThanhTien.toLocaleString('vi-VN') + ' đ' : '0 đ'}</td>
         <td class="actions">
           <button class="btn small danger" onclick="deleteUsage('${item.MaSD}')">
             <i class="fas fa-trash"></i> Xóa
@@ -451,8 +378,6 @@ function displayUsage(usage) {
     `;
     tbody.innerHTML += row;
   });
-
-  console.log("✅ Đã hiển thị xong", usage.length, "sử dụng dịch vụ");
 }
 
 async function deleteInvoice(invoiceId) {
@@ -997,7 +922,7 @@ async function openUsageModal(usage = null) {
       bookings.map(b => `<option value="${b.MaDP}">Đặt phòng #${b.MaDP} - ${b.TenKH || ''}</option>`).join('');
     
     serviceSelect.innerHTML = '<option value="">-- Chọn dịch vụ --</option>' +
-      services.map(s => `<option value="${s.MaDV}">${s.TenDV} - ${s.DonGia && !isNaN(parseFloat(s.DonGia)) ? parseFloat(s.DonGia).toLocaleString('vi-VN') : '0'}đ</option>`).join('');
+      services.map(s => `<option value="${s.MaDV}">${s.TenDV} - ${s.DonGia?.toLocaleString()}đ</option>`).join('');
     
     if (usage) {
       title.textContent = 'Sửa sử dụng dịch vụ';
@@ -1059,29 +984,19 @@ async function handleUsageSubmit(e) {
 // ==================== USERS MANAGEMENT ====================
 async function loadUsers() {
   try {
-    console.log("🔄 Đang tải nhân viên...");
     const response = await fetch(`${API_BASE}/users`);
     const users = await response.json();
-    console.log("✅ Nhân viên nhận được:", users.length, "items");
-    if (users.length > 0) {
-      console.log("📦 Nhân viên đầu tiên:", users[0]);
-    }
     displayUsers(users);
   } catch (error) {
-    console.error("❌ Lỗi tải nhân viên:", error);
+    console.error("Lỗi tải nhân viên:", error);
     alert("Lỗi tải nhân viên: " + error.message);
   }
 }
 
 function displayUsers(users) {
-  console.log("🎨 Bắt đầu hiển thị nhân viên...");
   const tbody = document.querySelector("#table-users tbody");
-  if (!tbody) {
-    console.error("❌ Không tìm thấy #table-users tbody");
-    return;
-  }
+  if (!tbody) return;
   tbody.innerHTML = "";
-  console.log("✅ Đã clear tbody nhân viên");
 
   users.forEach((user) => {
     const vaiTroText = {
@@ -1123,8 +1038,6 @@ function displayUsers(users) {
     `;
     tbody.innerHTML += row;
   });
-
-  console.log("✅ Đã hiển thị xong", users.length, "nhân viên");
 }
 
 let editingUserId = null;
@@ -1280,30 +1193,20 @@ window.handleUserSubmit = handleUserSubmit;
 window.editUser = editUser;
 window.deleteUser = deleteUser;
 window.loadUsers = loadUsers;
-window.deleteBooking = deleteBooking;
-window.deleteService = deleteService;
-window.deleteCustomer = deleteCustomer;
-window.deleteRoom = deleteRoom;
 
 window.deleteItem = async function (type, id) {
   if (!confirm(`Xóa ${id}?`)) return;
   try {
     if (type === "customers") {
-      const response = await fetch(`${API_BASE}/customers/${id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Xóa khách hàng thất bại');
+      await CustomerAPI.delete(id);
       await loadCustomers();
     } else if (type === "rooms") {
-      const response = await fetch(`${API_BASE}/rooms/${id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Xóa phòng thất bại');
+      await RoomAPI.delete(id);
       await loadRooms();
-    } else if (type === "services") {
-      const response = await fetch(`${API_BASE}/services/${id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Xóa dịch vụ thất bại');
-      await loadServices();
     }
-    alert("✅ Xóa thành công");
+    alert("Xóa thành công");
   } catch (error) {
-    alert("❌ Lỗi khi xóa: " + error.message);
+    alert("Lỗi khi xóa: " + error.message);
   }
 };
 
@@ -1317,22 +1220,7 @@ async function deleteService(serviceId) {
   await deleteItem("services", serviceId);
 }
 async function deleteBooking(bookingId) {
-  if (!confirm(`Xóa đặt phòng #${bookingId}?`)) return;
-  try {
-    const response = await fetch(`${API_BASE}/bookings/${bookingId}`, {
-      method: 'DELETE'
-    });
-    const result = await response.json();
-    if (response.ok) {
-      alert('✅ Xóa đặt phòng thành công!');
-      loadBookings();
-      loadDashboardStats();
-    } else {
-      alert('❌ Lỗi: ' + (result.error || 'Xóa thất bại'));
-    }
-  } catch (error) {
-    alert('❌ Lỗi: ' + error.message);
-  }
+  alert("Chức năng xóa booking chưa khả dụng");
 }
 
 function generateId(kind) {
@@ -1343,18 +1231,9 @@ function generateId(kind) {
 // ==================== NAVIGATION ====================
 // Function này sẽ được override ở cuối file
 function showPage(page) {
-  console.log('🔄 showPage (old) called with:', page);
-  document.querySelectorAll(".page").forEach((p) => {
-    p.style.display = "none";
-    p.classList.remove('active');
-  });
+  document.querySelectorAll(".page").forEach((p) => (p.style.display = "none"));
   const el = document.getElementById("page-" + page);
-  if (el) {
-    el.style.display = "block";
-    el.classList.add('active');
-    el.style.opacity = "1";
-    console.log('✅ Đã hiển thị page (old):', page, el);
-  }
+  if (el) el.style.display = "block";
   const panelTitle = document.getElementById("panelTitle");
   if (panelTitle) {
     panelTitle.textContent =
@@ -1367,9 +1246,6 @@ function showPage(page) {
   else if (page === "rooms") loadRooms();
   else if (page === "services") loadServices();
   else if (page === "bookings") loadBookings();
-  else if (page === "invoices") loadInvoices();
-  else if (page === "usage") loadUsage();
-  else if (page === "users") loadUsers();
   else if (page === "home") loadDashboardStats();
 }
 
@@ -1492,7 +1368,7 @@ async function openBookingModal() {
     rooms.filter(r => r.TinhTrang === 'trong' || r.TrangThai === 'Trống').forEach(r => {
       const option = document.createElement('option');
       option.value = r.MaPhong;
-      option.textContent = `${r.SoPhong || r.MaPhong} - ${r.LoaiPhong || 'N/A'} (${r.GiaPhong && !isNaN(parseFloat(r.GiaPhong)) ? parseFloat(r.GiaPhong).toLocaleString('vi-VN') + ' đ' : 'N/A'})`;
+      option.textContent = `${r.SoPhong || r.MaPhong} - ${r.LoaiPhong || 'N/A'} (${r.GiaPhong ? r.GiaPhong.toLocaleString('vi-VN') + ' đ' : 'N/A'})`;
       roomSelect.appendChild(option);
     });
     
@@ -1648,370 +1524,30 @@ async function updateBookingStatus(bookingId, newStatus) {
   }
 }
 
-// Loading state management
-function showPageLoading(pageElement) {
-  if (!pageElement) return;
-  
-  // Create or get loading overlay
-  let overlay = pageElement.querySelector('.loading-overlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.className = 'loading-overlay';
-    overlay.innerHTML = '<div class="loading-spinner"></div>';
-    pageElement.appendChild(overlay);
-  }
-  
-  // Show loading
-  setTimeout(() => {
-    overlay.classList.add('active');
-    pageElement.classList.add('loading');
-  }, 10);
-}
-
-function hidePageLoading(pageElement) {
-  if (!pageElement) return;
-  
-  const overlay = pageElement.querySelector('.loading-overlay');
-  if (overlay) {
-    overlay.classList.remove('active');
-    pageElement.classList.remove('loading');
-    // Remove overlay after animation
-    setTimeout(() => {
-      if (!overlay.classList.contains('active')) {
-        overlay.remove();
-      }
-    }, 300);
-  }
-}
-
 // Load dashboard when home page is shown
 // Override showPage to load dashboard stats
 const originalShowPage = window.showPage || showPage;
-// Prevent duplicate calls
-let showPageInProgress = false;
-
-window.showPage = async function(page) {
-  // Store current page to load data even if duplicate call
-  const currentPage = page;
-  
-  // Prevent duplicate calls for display logic only
-  if (showPageInProgress) {
-    console.log('⏸️ showPage already in progress, but will still load data for:', currentPage);
-    // Still load data even if display is in progress
-    try {
-      if (currentPage === "customers") {
-        await loadCustomers();
-      } else if (currentPage === "rooms") {
-        await loadRooms();
-      } else if (currentPage === "services") {
-        await loadServices();
-      } else if (currentPage === "bookings") {
-        await loadBookings();
-      } else if (currentPage === "invoices") {
-        await loadInvoices();
-      } else if (currentPage === "usage") {
-        await loadUsage();
-      } else if (currentPage === "users") {
-        await loadUsers();
-      } else if (currentPage === "home") {
-        await loadDashboardStats();
-      }
-    } catch (error) {
-      console.error('Error loading page data (duplicate call):', error);
-    }
-    return;
+window.showPage = function(page) {
+  // Hide all pages
+  document.querySelectorAll(".page").forEach((p) => (p.style.display = "none"));
+  const el = document.getElementById("page-" + page);
+  if (el) el.style.display = "block";
+  const panelTitle = document.getElementById("panelTitle");
+  if (panelTitle) {
+    panelTitle.textContent =
+      document.querySelector('[data-page="' + page + '"]')?.textContent ||
+      "NORTHWEST";
   }
   
-  showPageInProgress = true;
-  console.log('🔄 showPage called with:', page);
-  
-  let el = null;
-  
-  try {
-    // QUAN TRỌNG: Tìm và set display: block cho page hiện tại TRƯỚC khi hide các pages khác
-    el = document.getElementById("page-" + page);
-    if (!el) {
-      console.error('❌ Không tìm thấy page:', 'page-' + page);
-      showPageInProgress = false;
-      return;
-    }
-    
-    // CRITICAL: Set display: block cho page hiện tại TRƯỚC khi hide các pages khác
-    // Store current page ID để tránh bị hide nhầm
-    const currentPageId = "page-" + page;
-    
-    // Set display: block với !important TRƯỚC - KHÔNG remove property trước
-    el.classList.add('active');
-    el.style.setProperty('display', 'block', 'important');
-    el.style.setProperty('opacity', '1', 'important');
-    el.style.setProperty('visibility', 'visible', 'important');
-    
-    // Force immediate reflow để đảm bảo styles được apply
-    void el.offsetHeight;
-    
-    // SAU ĐÓ mới hide các pages khác - đảm bảo không hide page hiện tại
-    // Collect all pages to hide first, then hide them
-    const pagesToHide = [];
-    document.querySelectorAll(".page").forEach((p) => {
-      // Triple check: không hide page hiện tại
-      if (p.id !== currentPageId && p !== el && p.id) {
-        pagesToHide.push(p);
-      }
-    });
-    
-    // Hide other pages - ĐẢM BẢO không ảnh hưởng đến page hiện tại
-    pagesToHide.forEach((p) => {
-      // QUADRUPLE check: không hide page hiện tại
-      if (p.id !== currentPageId && p !== el && p.id && !p.classList.contains('active') || p.id !== currentPageId) {
-        p.classList.remove('active');
-        p.style.setProperty('display', 'none', 'important');
-      }
-    });
-    
-    // CRITICAL: Đảm bảo page hiện tại LUÔN có class active và display: block
-    // Phải làm SAU KHI hide các pages khác để tránh bị ảnh hưởng
-    if (!el.classList.contains('active')) {
-      console.warn('⚠️ Class active bị thiếu sau khi hide pages! Đang add lại...', page);
-    }
-    el.classList.add('active'); // LUÔN add, không check
-    el.style.setProperty('display', 'block', 'important');
-    el.style.setProperty('opacity', '1', 'important');
-    el.style.setProperty('visibility', 'visible', 'important');
-    
-    // Force reflow để đảm bảo styles được apply
-    void el.offsetHeight;
-    
-    // Final check: đảm bảo computed style là block VÀ có class active
-    const finalComputedDisplay = window.getComputedStyle(el).display;
-    const hasActiveClass = el.classList.contains('active');
-    
-    if (finalComputedDisplay === 'none' || !hasActiveClass) {
-      console.error('❌ CRITICAL: Page bị ẩn hoặc thiếu class active!', {
-        page,
-        computedDisplay,
-        hasActiveClass,
-        inlineDisplay: el.style.getPropertyValue('display')
-      });
-      
-      // Force remove ALL display-related properties
-      el.style.removeProperty('display');
-      el.style.removeProperty('opacity');
-      el.style.removeProperty('visibility');
-      
-      // Force reflow
-      void el.offsetHeight;
-      
-      // Set lại với !important và class active
-      el.classList.add('active');
-      el.style.setProperty('display', 'block', 'important');
-      el.style.setProperty('opacity', '1', 'important');
-      el.style.setProperty('visibility', 'visible', 'important');
-      
-      // Force reflow again
-      void el.offsetHeight;
-      
-      const afterFix = window.getComputedStyle(el).display;
-      const afterFixActive = el.classList.contains('active');
-      console.log('   - After fix - computed:', afterFix, 'has active:', afterFixActive);
-      
-      if (afterFix === 'none' || !afterFixActive) {
-        console.error('❌❌❌ VẪN BỊ ẨN SAU KHI FIX! Có thể do CSS hoặc code khác!');
-      }
-    }
-    
-    // CRITICAL: Đảm bảo class active được add TRƯỚC KHI log
-    if (!el.classList.contains('active')) {
-      console.warn('⚠️ Class active bị thiếu! Đang add lại...', page);
-      el.classList.add('active');
-    }
-    
-    // Log với thông tin đầy đủ
-    const logHasActive = el.classList.contains('active');
-    const logInlineDisplay = el.style.getPropertyValue('display');
-    const logComputedDisplay = window.getComputedStyle(el).display;
-    console.log('✅ Đã hiển thị page:', page);
-    console.log('   - has active class:', logHasActive);
-    console.log('   - inline display:', logInlineDisplay);
-    console.log('   - computed display:', logComputedDisplay);
-    console.log('   - element:', el);
-    
-    // Nếu không có class active, force add lại
-    if (!logHasActive) {
-      el.classList.add('active');
-      el.style.setProperty('display', 'block', 'important');
-      el.style.setProperty('opacity', '1', 'important');
-      el.style.setProperty('visibility', 'visible', 'important');
-    }
-  
-    // Update title
-    const panelTitle = document.getElementById("panelTitle");
-    if (panelTitle) {
-      panelTitle.textContent =
-        document.querySelector('[data-page="' + page + '"]')?.textContent ||
-        "NORTHWEST";
-    }
-    
-    // Show loading (KHÔNG ảnh hưởng đến display của page)
-    showPageLoading(el);
-    
-    // Đảm bảo display và opacity vẫn đúng sau showPageLoading - KHÔNG remove, chỉ set lại
-    el.style.setProperty('display', 'block', 'important');
-    el.style.setProperty('opacity', '1', 'important');
-    el.style.setProperty('visibility', 'visible', 'important');
-    el.classList.add('active');
-    
-    // Wait a bit for smooth transition
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Đảm bảo display và opacity vẫn đúng sau delay - KHÔNG remove, chỉ set lại
-    el.style.setProperty('display', 'block', 'important');
-    el.style.setProperty('opacity', '1', 'important');
-    el.style.setProperty('visibility', 'visible', 'important');
-    el.classList.add('active');
-    
-    // Load data when switching pages
-    try {
-      if (page === "customers") {
-        await loadCustomers();
-      } else if (page === "rooms") {
-        await loadRooms();
-      } else if (page === "services") {
-        await loadServices();
-      } else if (page === "bookings") {
-        await loadBookings();
-      } else if (page === "invoices") {
-        await loadInvoices();
-      } else if (page === "usage") {
-        await loadUsage();
-      } else if (page === "users") {
-        await loadUsers();
-      } else if (page === "home") {
-        await loadDashboardStats();
-      }
-    } catch (error) {
-      console.error('Error loading page data:', error);
-    }
-  } catch (error) {
-    console.error('Error in showPage:', error);
-  } finally {
-    // Hide loading and show content with fade-in
-    if (el) {
-      hidePageLoading(el);
-      
-      // Hide loading overlay
-      hidePageLoading(el);
-      
-      // CRITICAL: Đảm bảo page vẫn hiển thị sau khi hide loading
-      // KHÔNG remove property - chỉ set lại để đảm bảo không bị override
-      el.classList.add('active');
-      el.classList.remove('loading'); // Remove loading class để không bị opacity: 0.5
-      el.style.setProperty('display', 'block', 'important');
-      el.style.setProperty('opacity', '1', 'important');
-      el.style.setProperty('visibility', 'visible', 'important');
-      
-      // Force reflow để đảm bảo styles được apply
-      void el.offsetHeight;
-      
-      // Double check sau reflow - đảm bảo vẫn hiển thị
-      const computedDisplay = window.getComputedStyle(el).display;
-      if (computedDisplay === 'none') {
-        console.warn('⚠️ Page bị ẩn sau hidePageLoading, đang fix lại...', page);
-      el.style.setProperty('display', 'block', 'important');
-      el.style.setProperty('opacity', '1', 'important');
-      el.style.setProperty('visibility', 'visible', 'important');
-        el.classList.add('active');
-      }
-      
-      // Double check sau một frame
-      requestAnimationFrame(() => {
-        if (el && el.classList.contains('active')) {
-          el.classList.remove('loading');
-          const computed = window.getComputedStyle(el).display;
-          if (computed === 'none') {
-          el.style.setProperty('display', 'block', 'important');
-          el.style.setProperty('opacity', '1', 'important');
-          el.style.setProperty('visibility', 'visible', 'important');
-          }
-        }
-      });
-      
-      // Triple check sau 2 frames để đảm bảo
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          if (el && el.classList.contains('active')) {
-            el.classList.remove('loading');
-            const computed = window.getComputedStyle(el).display;
-            if (computed === 'none') {
-              el.style.setProperty('display', 'block', 'important');
-              el.style.setProperty('opacity', '1', 'important');
-              el.style.setProperty('visibility', 'visible', 'important');
-            }
-          }
-        });
-      });
-      
-      // Final check và log chi tiết - CHỈ dựa vào computed style
-      const finalComputed = window.getComputedStyle(el).display;
-      const hasActive = el.classList.contains('active');
-      const hasLoading = el.classList.contains('loading');
-      
-      console.log('✅ Final state - page:', page);
-      console.log('   - computed display:', finalComputed);
-      console.log('   - has active class:', hasActive);
-      console.log('   - has loading class:', hasLoading);
-      
-      // CRITICAL: Nếu computed style là none, force hiển thị lại
-      // Không check inline style vì có thể có !important conflict
-      if (finalComputed === 'none') {
-        console.error('❌ CRITICAL ERROR: Page bị ẩn (computed=none)! Đang force hiển thị...', page);
-        // Remove ALL display-related properties first
-        el.style.removeProperty('display');
-        el.style.removeProperty('opacity');
-        el.style.removeProperty('visibility');
-        // Force reflow
-        void el.offsetHeight;
-        // Set lại với !important
-        el.classList.add('active');
-        el.classList.remove('loading');
-            el.style.setProperty('display', 'block', 'important');
-            el.style.setProperty('opacity', '1', 'important');
-            el.style.setProperty('visibility', 'visible', 'important');
-        // Force reflow again
-        void el.offsetHeight;
-        const afterFix = window.getComputedStyle(el).display;
-        console.log('   - After fix, computed:', afterFix);
-        if (afterFix === 'none') {
-          console.error('❌❌❌ VẪN BỊ ẨN SAU KHI FIX! Có thể do CSS hoặc code khác đang override!');
-        }
-      } else {
-        // Đảm bảo có active class
-        const finalHasActive = el.classList.contains('active');
-        if (!finalHasActive) {
-          el.classList.add('active');
-        }
-      }
-      
-      // Đơn giản: Đảm bảo .content container được hiển thị
-      const contentContainer = document.querySelector('.content');
-      if (contentContainer) {
-        const contentDisplay = window.getComputedStyle(contentContainer).display;
-        if (contentDisplay === 'none') {
-          contentContainer.style.setProperty('display', 'flex', 'important');
-        }
-      }
-      
-      // Đảm bảo #pages container được hiển thị
-      const pagesContainer = document.getElementById('pages');
-      if (pagesContainer) {
-        const pagesDisplay = window.getComputedStyle(pagesContainer).display;
-        if (pagesDisplay === 'none') {
-          pagesContainer.style.setProperty('display', 'block', 'important');
-        }
-      }
-    }
-    
-    showPageInProgress = false;
-  }
+  // Load data when switching pages
+  if (page === "customers") loadCustomers();
+  else if (page === "rooms") loadRooms();
+  else if (page === "services") loadServices();
+  else if (page === "bookings") loadBookings();
+  else if (page === "invoices") loadInvoices();
+  else if (page === "usage") loadUsage();
+  else if (page === "users") loadUsers();
+  else if (page === "home") loadDashboardStats();
 };
 
 // Make functions global

@@ -321,97 +321,9 @@
       /* Page visibility */
       .page {
         display: none;
-        opacity: 0;
-        transition: opacity 0.3s ease-in-out;
-        min-height: 100%; /* Đảm bảo page có chiều cao tối thiểu */
-        width: 100%; /* Đảm bảo page có chiều rộng */
       }
       .page.active {
-        display: block !important;
-        opacity: 1 !important;
-        visibility: visible !important;
-        min-height: 100% !important; /* Force min-height khi active */
-        width: 100% !important; /* Force width khi active */
-      }
-      /* Override ANY display: none for active pages - CRITICAL - Highest specificity */
-      /* Match various forms of display: none in inline styles */
-      .page.active[style*="display: none"],
-      .page.active[style*="display:none"],
-      .page.active[style*="display: none !important"],
-      .page.active[style*="display:none !important"],
-      .page.active[style*="display: none!important"],
-      .page.active[style*="display:none!important"] {
-        display: block !important;
-        opacity: 1 !important;
-        visibility: visible !important;
-      }
-      /* Ensure page is visible when display is set inline */
-      .page[style*="display: block"] {
-        display: block !important;
-        opacity: 1 !important;
-      }
-      /* Force visibility for active pages - Highest priority */
-      .page.active[style*="display: block"],
-      .page.active[style*="display:block"],
-      .page.active[style*="display: block !important"],
-      .page.active[style*="display:block !important"] {
-        display: block !important;
-        opacity: 1 !important;
-        visibility: visible !important;
-      }
-      .page.loading {
-        /* KHÔNG set opacity: 0.5 nữa - để page luôn hiển thị rõ */
-        /* opacity: 0.5; */
-      }
-      /* Đảm bảo active pages luôn có opacity: 1 ngay cả khi có class loading */
-      .page.active.loading {
-        opacity: 1 !important;
-        display: block !important;
-        visibility: visible !important;
-      }
-      /* CRITICAL: Force display block for active pages regardless of inline styles */
-      div.page.active {
-        display: block !important;
-        opacity: 1 !important;
-        visibility: visible !important;
-      }
-      
-      /* Loading overlay */
-      .loading-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(255, 255, 255, 0.9);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 100;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
-      }
-      .loading-overlay.active {
-        opacity: 1;
-        pointer-events: all;
-      }
-      .loading-spinner {
-        width: 50px;
-        height: 50px;
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid var(--blue);
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-      }
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      
-      /* Content container with relative position for loading overlay */
-      .panel .content {
-        position: relative;
+        display: block;
       }
 
       /* table style */
@@ -445,24 +357,6 @@
       }
       tbody tr {
         transition: all 0.2s ease;
-        opacity: 0;
-        animation: fadeInRow 0.3s ease forwards;
-      }
-      tbody tr:nth-child(1) { animation-delay: 0.05s; }
-      tbody tr:nth-child(2) { animation-delay: 0.1s; }
-      tbody tr:nth-child(3) { animation-delay: 0.15s; }
-      tbody tr:nth-child(4) { animation-delay: 0.2s; }
-      tbody tr:nth-child(5) { animation-delay: 0.25s; }
-      tbody tr:nth-child(n+6) { animation-delay: 0.3s; }
-      @keyframes fadeInRow {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
       }
       tbody tr:hover {
         background: #f8f9fa;
@@ -631,22 +525,6 @@
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
-        opacity: 0;
-        animation: fadeInCard 0.4s ease forwards;
-      }
-      .stat-card:nth-child(1) { animation-delay: 0.1s; }
-      .stat-card:nth-child(2) { animation-delay: 0.2s; }
-      .stat-card:nth-child(3) { animation-delay: 0.3s; }
-      .stat-card:nth-child(4) { animation-delay: 0.4s; }
-      @keyframes fadeInCard {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
       }
       .stat-card::before {
         content: '';
@@ -969,95 +847,13 @@
         margin: 0;
       }
 
-      /* Mobile Menu Toggle Button */
-      .mobile-menu-toggle {
-        display: none;
-        position: fixed;
-        top: 15px;
-        left: 15px;
-        z-index: 1001;
-        background: var(--blue);
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        width: 45px;
-        height: 45px;
-        font-size: 20px;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        align-items: center;
-        justify-content: center;
-      }
-      .mobile-menu-toggle:hover {
-        background: var(--deep);
-      }
-      .sidebar-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.5);
-        z-index: 999;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
-      .sidebar-overlay.active {
-        opacity: 1;
-      }
-      .table-wrapper {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        width: 100%;
-      }
-      table {
-        min-width: 800px; /* Ensure table doesn't shrink too much */
-      }
-
       /* responsive */
       @media (max-width: 900px) {
-        .mobile-menu-toggle {
-          display: flex;
-        }
         .layout {
           grid-template-columns: 1fr;
         }
-        .left-card {
-          position: fixed;
-          left: -280px;
-          top: 0;
-          height: 100vh;
-          z-index: 1000;
-          transition: left 0.3s ease;
-          box-shadow: 2px 0 20px rgba(0,0,0,0.3);
-        }
-        .left-card.mobile-open {
-          left: 0;
-        }
-        .sidebar-overlay {
-          display: block;
-        }
-        .panel {
-          margin-left: 0;
-          padding: 60px 12px 20px 12px;
-        }
-        .page-title {
-          font-size: 24px;
-          margin-bottom: 16px;
-        }
         .stats-grid {
           grid-template-columns: 1fr;
-          gap: 12px;
-        }
-        .stat-card {
-          padding: 16px;
-        }
-        .stat-label {
-          font-size: 12px;
-        }
-        .stat-value {
-          font-size: 24px;
         }
         .dashboard-actions {
           flex-direction: column;
@@ -1065,110 +861,16 @@
         .dashboard-actions button {
           width: 100%;
         }
-        .search-bar {
-          width: 100%;
-        }
         .search-bar input {
           width: 100%;
-          font-size: 14px;
         }
         .controls {
           flex-direction: column;
           align-items: stretch;
-          padding: 12px;
         }
-        .filter-buttons {
-          margin-left: 0;
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-        .filter-buttons button {
-          font-size: 13px;
-          padding: 8px 12px;
-        }
-        .table-wrapper {
-          margin: 0 -12px;
-          padding: 0 12px;
-        }
-        table {
-          font-size: 13px;
-        }
-        table th,
-        table td {
-          padding: 10px 8px;
-          white-space: nowrap;
-        }
-        .btn {
-          padding: 8px 14px;
-          font-size: 13px;
-        }
-        .btn.small {
-          padding: 5px 10px;
-          font-size: 12px;
-        }
-        .modal-content {
-          width: 95%;
-          max-width: 95%;
-          margin: 20px auto;
-          padding: 20px;
-        }
-        .modal-header h2 {
-          font-size: 20px;
-        }
-        .form-group {
-          margin-bottom: 16px;
-        }
-        .form-group label {
-          font-size: 13px;
-        }
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-          font-size: 14px;
-          padding: 10px 12px;
-        }
-        .sidebar-header h2 {
-          font-size: 18px;
-        }
-        .sidebar-header .user-info {
-          font-size: 11px;
-        }
-        .nav button {
-          padding: 12px 14px;
-          font-size: 13px;
-        }
-      }
-      
-      @media (max-width: 480px) {
-        .panel {
-          padding: 60px 8px 16px 8px;
-        }
-        .page-title {
-          font-size: 20px;
-        }
-        .stat-value {
-          font-size: 20px;
-        }
-        table {
-          font-size: 12px;
-          min-width: 700px;
-        }
-        table th,
-        table td {
-          padding: 8px 6px;
-        }
-        .modal-content {
-          padding: 16px;
-        }
-        .modal-header h2 {
-          font-size: 18px;
-        }
-        .btn {
-          padding: 7px 12px;
-          font-size: 12px;
-        }
-        .controls {
-          padding: 10px;
+      .filter-buttons {
+        margin-left: 0;
+        flex-wrap: wrap;
         }
       }
 
@@ -1182,12 +884,7 @@
       #nav-users[style*="display: none"] {
         display: none !important;
       }
-      .modal-content[style*="max-width"] {
-        /* max-width được set inline cho responsive - giữ lại */
-      }
-      #bookingList[style*="max-height"] {
-        /* max-height được set inline - giữ lại */
-      }
+      /* Inline styles for responsive design are handled dynamically */
       .recent-section-title {
         margin-top: 30px;
         color: var(--deep);
@@ -1255,15 +952,9 @@
 
     <!-- Main App (hidden until login) -->
     <div class="app" id="mainApp" style="display: none;">
-      <!-- Mobile Menu Toggle -->
-      <button class="mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleMobileMenu()">
-        <i class="fas fa-bars"></i>
-      </button>
-      <!-- Sidebar Overlay for Mobile -->
-      <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileMenu()"></div>
       <div class="layout">
         <!-- LEFT: nav + hero -->
-        <aside class="left-card" id="sidebar">
+        <aside class="left-card">
           <div class="sidebar-header">
             <h2><i class="fas fa-hotel"></i> NORTHWEST HOTEL</h2>
             <div class="user-info" id="userInfo">Đang tải...</div>
@@ -1394,19 +1085,18 @@
                     </button>
                   </div>
                   <div class="filter-buttons" id="filters-customers">
-                    <button onclick="filterTable('customers','all', this)" class="active">
+                    <button onclick="filterTable('customers','all')">
                       Tất cả
                     </button>
-                    <button onclick="filterTable('customers','hasPhone', this)">
+                    <button onclick="filterTable('customers','hasPhone')">
                       Có SĐT
                     </button>
-                    <button onclick="filterTable('customers','noPhone', this)">
+                    <button onclick="filterTable('customers','noPhone')">
                       Không SĐT
                     </button>
                   </div>
                 </div>
 
-                <div class="table-wrapper">
                 <table id="table-customers">
                   <thead>
                     <tr>
@@ -1466,16 +1156,15 @@
                     </button>
                   </div>
                   <div class="filter-buttons">
-                    <button onclick="filterTable('rooms','all', this)" class="active">Tất cả</button>
-                    <button onclick="filterTable('rooms','empty', this)">
+                    <button onclick="filterTable('rooms','all')">Tất cả</button>
+                    <button onclick="filterTable('rooms','empty')">
                       Trống
                     </button>
-                    <button onclick="filterTable('rooms','booked', this)">
+                    <button onclick="filterTable('rooms','booked')">
                       Đã đặt
                     </button>
                   </div>
                 </div>
-                <div class="table-wrapper">
                 <table id="table-rooms">
                   <thead>
                     <tr>
@@ -1532,18 +1221,17 @@
                     </button>
                   </div>
                   <div class="filter-buttons">
-                    <button onclick="filterTable('services','all', this)" class="active">
+                    <button onclick="filterTable('services','all')">
                       Tất cả
                     </button>
-                    <button onclick="filterTable('services','cheap', this)">
+                    <button onclick="filterTable('services','cheap')">
                       Giá < 500k
                     </button>
-                    <button onclick="filterTable('services','exp', this)">
+                    <button onclick="filterTable('services','exp')">
                       Giá >= 500k
                     </button>
                   </div>
                 </div>
-                <div class="table-wrapper">
                 <table id="table-services">
                   <thead>
                     <tr>
@@ -1597,15 +1285,17 @@
                     </button>
                   </div>
                   <div class="filter-buttons">
-                    <button onclick="filterTable('bookings','all', this)" class="active">
+                    <button onclick="filterTable('bookings','all')">
                       Tất cả
                     </button>
-                    <button onclick="filterTable('bookings','active', this)">
+                    <button onclick="filterTable('bookings','active')">
                       Hoạt động
+                    </button>
+                    <button onclick="filterTable('bookings','past')">
+                      Quá hạn
                     </button>
                   </div>
                 </div>
-                <div class="table-wrapper">
                 <table id="table-bookings">
                   <thead>
                     <tr>
@@ -1653,12 +1343,11 @@
                     </button>
                   </div>
                   <div class="filter-buttons">
-                    <button onclick="filterTable('invoices','all', this)" class="active">
+                    <button onclick="filterTable('invoices','all')">
                       Tất cả
                     </button>
                   </div>
                 </div>
-                <div class="table-wrapper">
                 <table id="table-invoices">
                   <thead>
                     <tr>
@@ -1702,10 +1391,9 @@
                     </button>
                   </div>
                   <div class="filter-buttons">
-                    <button onclick="filterTable('usage','all', this)" class="active">Tất cả</button>
+                    <button onclick="filterTable('usage','all')">Tất cả</button>
                   </div>
                 </div>
-                <div class="table-wrapper">
                 <table id="table-usage">
                   <thead>
                     <tr>
@@ -1750,18 +1438,17 @@
                     </button>
                   </div>
                   <div class="filter-buttons">
-                    <button onclick="filterTable('users','all', this)" class="active">
+                    <button onclick="filterTable('users','all')">
                       Tất cả
                     </button>
-                    <button onclick="filterTable('users','active', this)">
+                    <button onclick="filterTable('users','active')">
                       Đang hoạt động
                     </button>
-                    <button onclick="filterTable('users','inactive', this)">
+                    <button onclick="filterTable('users','inactive')">
                       Đã vô hiệu hóa
                     </button>
                   </div>
                 </div>
-                <div class="table-wrapper">
                 <table id="table-users">
                   <thead>
                     <tr>
@@ -1804,35 +1491,17 @@
         }
       };
 
-      // Remove old event listeners first to prevent duplicates
       navButtons.forEach((btn) => {
-        // Clone node to remove all event listeners
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-      });
-      
-      // Get fresh references
-      const freshNavButtons = document.querySelectorAll('.nav button[data-page]');
-      
-      freshNavButtons.forEach((btn) => {
-        btn.addEventListener("click", function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          
-          freshNavButtons.forEach((b) => b.classList.remove("active"));
+        btn.addEventListener("click", () => {
+          navButtons.forEach((b) => b.classList.remove("active"));
           btn.classList.add("active");
           const page = btn.dataset.page;
-          console.log('🖱️ Nav button clicked:', page);
-          
-          // Luôn dùng window.showPage để đảm bảo dùng function mới nhất
-          if (window.showPage) {
+          if (typeof showPage === 'function') {
+          showPage(page);
+          } else if (window.showPage) {
             window.showPage(page);
-          } else if (typeof showPage === 'function') {
-            showPage(page);
-          } else {
-            console.error('❌ showPage function not found!');
           }
-        }, { once: false });
+        });
       });
 
       // Delete row
@@ -1890,25 +1559,10 @@
       }
 
       // Simple filtering/searching
-      function filterTable(kind, mode, buttonElement) {
-        // Update active state of filter buttons
-        const pageElement = document.getElementById("page-" + kind);
-        if (pageElement) {
-          const filterContainer = pageElement.querySelector(".filter-buttons");
-          if (filterContainer) {
-            filterContainer.querySelectorAll('button').forEach(btn => {
-              btn.classList.remove('active');
-            });
-            if (buttonElement) {
-              buttonElement.classList.add('active');
-            }
-          }
-        }
-        
+      function filterTable(kind, mode) {
         const tb = document
           .getElementById("table-" + kind)
           .querySelector("tbody");
-        if (!tb) return;
         const rows = Array.from(tb.querySelectorAll("tr"));
         rows.forEach((r) => (r.style.display = ""));
         if (mode === "all") return;
@@ -1939,27 +1593,34 @@
         if (kind === "services") {
           if (mode === "cheap")
             rows.forEach((r) => {
-              const priceText = r.children[2].textContent.trim();
-              // Parse price from text like "150.000 đ" or "150000 đ"
-              const price = parseFloat(priceText.replace(/[^\d]/g, '')) || 0;
-              if (price >= 500000)
+              if (Number(r.children[2].textContent.trim() || 0) >= 500000)
                 r.style.display = "none";
             });
           if (mode === "exp")
             rows.forEach((r) => {
-              const priceText = r.children[2].textContent.trim();
-              // Parse price from text like "150.000 đ" or "150000 đ"
-              const price = parseFloat(priceText.replace(/[^\d]/g, '')) || 0;
-              if (price < 500000)
+              if (Number(r.children[2].textContent.trim() || 0) < 500000)
                 r.style.display = "none";
             });
         }
         if (kind === "bookings") {
           if (mode === "active")
             rows.forEach((r) => {
-              const status = r.children[6].textContent.trim().toLowerCase();
-              // Hoạt động = Đã xác nhận hoặc Đã check-in (chưa checkout, chưa hủy)
-              if (!status.includes("đã xác nhận") && !status.includes("đã check-in") && !status.includes("chờ xác nhận"))
+              if (
+                r.children[5].textContent
+                  .trim()
+                  .toLowerCase()
+                  .indexOf("đã đặt") === -1
+              )
+                r.style.display = "none";
+            });
+          if (mode === "past")
+            rows.forEach((r) => {
+              if (
+                r.children[5].textContent
+                  .trim()
+                  .toLowerCase()
+                  .indexOf("đã đặt") !== -1
+              )
                 r.style.display = "none";
             });
         }
@@ -2635,73 +2296,6 @@
     
     window.handleLogout = handleLogout;
     window.applyUserPermissions = applyUserPermissions;
-    
-    // Mobile Menu Toggle Functions
-    function toggleMobileMenu() {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('sidebarOverlay');
-      const toggleBtn = document.getElementById('mobileMenuToggle');
-      
-      if (sidebar && overlay) {
-        sidebar.classList.toggle('mobile-open');
-        overlay.classList.toggle('active');
-        
-        // Change icon
-        if (toggleBtn) {
-          const icon = toggleBtn.querySelector('i');
-          if (icon) {
-            if (sidebar.classList.contains('mobile-open')) {
-              icon.className = 'fas fa-times';
-            } else {
-              icon.className = 'fas fa-bars';
-            }
-          }
-        }
-      }
-    }
-    
-    function closeMobileMenu() {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('sidebarOverlay');
-      const toggleBtn = document.getElementById('mobileMenuToggle');
-      
-      if (sidebar && overlay) {
-        sidebar.classList.remove('mobile-open');
-        overlay.classList.remove('active');
-        
-        // Change icon back
-        if (toggleBtn) {
-          const icon = toggleBtn.querySelector('i');
-          if (icon) {
-            icon.className = 'fas fa-bars';
-          }
-        }
-      }
-    }
-    
-    // Close mobile menu when clicking on nav items
-    document.addEventListener('DOMContentLoaded', function() {
-      // Use event delegation to avoid duplicate listeners
-      const nav = document.querySelector('.nav');
-      if (nav) {
-        nav.addEventListener('click', function(e) {
-          if (e.target.closest('button[data-page]')) {
-            // Close mobile menu after a short delay to allow page transition
-            setTimeout(closeMobileMenu, 300);
-          }
-        });
-      }
-      
-      // Close mobile menu on window resize if screen becomes large
-      window.addEventListener('resize', function() {
-        if (window.innerWidth > 900) {
-          closeMobileMenu();
-        }
-      });
-    });
-    
-    window.toggleMobileMenu = toggleMobileMenu;
-    window.closeMobileMenu = closeMobileMenu;
   </script>
   <script src="app.js"></script>
   </body>
