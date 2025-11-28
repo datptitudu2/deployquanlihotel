@@ -1613,6 +1613,8 @@ window.showPage = async function(page) {
   showPageInProgress = true;
   console.log('🔄 showPage called with:', page);
   
+  let el = null;
+  
   try {
     // Hide all pages with smooth transition
     document.querySelectorAll(".page").forEach((p) => {
@@ -1622,9 +1624,10 @@ window.showPage = async function(page) {
       }
     });
     
-    const el = document.getElementById("page-" + page);
+    el = document.getElementById("page-" + page);
     if (!el) {
       console.error('❌ Không tìm thấy page:', 'page-' + page);
+      showPageInProgress = false;
       return;
     }
     
@@ -1636,54 +1639,59 @@ window.showPage = async function(page) {
     
     console.log('✅ Đã hiển thị page:', page, el, 'display:', el.style.display);
   
-  // Update title
-  const panelTitle = document.getElementById("panelTitle");
-  if (panelTitle) {
-    panelTitle.textContent =
-      document.querySelector('[data-page="' + page + '"]')?.textContent ||
-      "NORTHWEST";
-  }
-  
-  // Show loading
-  showPageLoading(el);
-  
-  // Wait a bit for smooth transition
-  await new Promise(resolve => setTimeout(resolve, 100));
-  
-  // Load data when switching pages
-  try {
-    if (page === "customers") {
-      await loadCustomers();
-    } else if (page === "rooms") {
-      await loadRooms();
-    } else if (page === "services") {
-      await loadServices();
-    } else if (page === "bookings") {
-      await loadBookings();
-    } else if (page === "invoices") {
-      await loadInvoices();
-    } else if (page === "usage") {
-      await loadUsage();
-    } else if (page === "users") {
-      await loadUsers();
-    } else if (page === "home") {
-      await loadDashboardStats();
+    // Update title
+    const panelTitle = document.getElementById("panelTitle");
+    if (panelTitle) {
+      panelTitle.textContent =
+        document.querySelector('[data-page="' + page + '"]')?.textContent ||
+        "NORTHWEST";
+    }
+    
+    // Show loading
+    showPageLoading(el);
+    
+    // Wait a bit for smooth transition
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Load data when switching pages
+    try {
+      if (page === "customers") {
+        await loadCustomers();
+      } else if (page === "rooms") {
+        await loadRooms();
+      } else if (page === "services") {
+        await loadServices();
+      } else if (page === "bookings") {
+        await loadBookings();
+      } else if (page === "invoices") {
+        await loadInvoices();
+      } else if (page === "usage") {
+        await loadUsage();
+      } else if (page === "users") {
+        await loadUsers();
+      } else if (page === "home") {
+        await loadDashboardStats();
+      }
+    } catch (error) {
+      console.error('Error loading page data:', error);
     }
   } catch (error) {
-    console.error('Error loading page data:', error);
+    console.error('Error in showPage:', error);
   } finally {
     // Hide loading and show content with fade-in
-    hidePageLoading(el);
-    // Đảm bảo page vẫn hiển thị sau khi hide loading - dùng setProperty với important
-    el.classList.add('active');
-    el.style.setProperty('display', 'block', 'important');
-    el.style.setProperty('opacity', '1', 'important');
-    el.style.setProperty('visibility', 'visible', 'important');
-    
-    // Force reflow để đảm bảo styles được apply
-    void el.offsetHeight;
-    
-    console.log('✅ Final state - page:', page, 'display:', el.style.display, 'active:', el.classList.contains('active'), 'computed:', window.getComputedStyle(el).display);
+    if (el) {
+      hidePageLoading(el);
+      // Đảm bảo page vẫn hiển thị sau khi hide loading - dùng setProperty với important
+      el.classList.add('active');
+      el.style.setProperty('display', 'block', 'important');
+      el.style.setProperty('opacity', '1', 'important');
+      el.style.setProperty('visibility', 'visible', 'important');
+      
+      // Force reflow để đảm bảo styles được apply
+      void el.offsetHeight;
+      
+      console.log('✅ Final state - page:', page, 'display:', el.style.display, 'active:', el.classList.contains('active'), 'computed:', window.getComputedStyle(el).display);
+    }
     
     showPageInProgress = false;
   }
