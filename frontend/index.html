@@ -1374,9 +1374,6 @@
                     <button onclick="filterTable('bookings','active', this)">
                       Hoạt động
                     </button>
-                    <button onclick="filterTable('bookings','past', this)">
-                      Quá hạn
-                    </button>
                   </div>
                 </div>
                 <table id="table-bookings">
@@ -1691,34 +1688,27 @@
         if (kind === "services") {
           if (mode === "cheap")
             rows.forEach((r) => {
-              if (Number(r.children[2].textContent.trim() || 0) >= 500000)
+              const priceText = r.children[2].textContent.trim();
+              // Parse price from text like "150.000 đ" or "150000 đ"
+              const price = parseFloat(priceText.replace(/[^\d]/g, '')) || 0;
+              if (price >= 500000)
                 r.style.display = "none";
             });
           if (mode === "exp")
             rows.forEach((r) => {
-              if (Number(r.children[2].textContent.trim() || 0) < 500000)
+              const priceText = r.children[2].textContent.trim();
+              // Parse price from text like "150.000 đ" or "150000 đ"
+              const price = parseFloat(priceText.replace(/[^\d]/g, '')) || 0;
+              if (price < 500000)
                 r.style.display = "none";
             });
         }
         if (kind === "bookings") {
           if (mode === "active")
             rows.forEach((r) => {
-              if (
-                r.children[5].textContent
-                  .trim()
-                  .toLowerCase()
-                  .indexOf("đã đặt") === -1
-              )
-                r.style.display = "none";
-            });
-          if (mode === "past")
-            rows.forEach((r) => {
-              if (
-                r.children[5].textContent
-                  .trim()
-                  .toLowerCase()
-                  .indexOf("đã đặt") !== -1
-              )
+              const status = r.children[6].textContent.trim().toLowerCase();
+              // Hoạt động = Đã xác nhận hoặc Đã check-in (chưa checkout, chưa hủy)
+              if (!status.includes("đã xác nhận") && !status.includes("đã check-in") && !status.includes("chờ xác nhận"))
                 r.style.display = "none";
             });
         }
