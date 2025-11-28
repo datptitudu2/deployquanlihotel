@@ -673,6 +673,7 @@
         line-height: 1.2;
         word-break: break-word;
         overflow-wrap: break-word;
+        -webkit-hyphens: auto;
         hyphens: auto;
         max-width: 100%;
         overflow: hidden;
@@ -1167,13 +1168,13 @@
                     </button>
                   </div>
                   <div class="filter-buttons" id="filters-customers">
-                    <button onclick="filterTable('customers','all')">
+                    <button onclick="filterTable('customers','all', this)" class="active">
                       Tất cả
                     </button>
-                    <button onclick="filterTable('customers','hasPhone')">
+                    <button onclick="filterTable('customers','hasPhone', this)">
                       Có SĐT
                     </button>
-                    <button onclick="filterTable('customers','noPhone')">
+                    <button onclick="filterTable('customers','noPhone', this)">
                       Không SĐT
                     </button>
                   </div>
@@ -1238,11 +1239,11 @@
                     </button>
                   </div>
                   <div class="filter-buttons">
-                    <button onclick="filterTable('rooms','all')">Tất cả</button>
-                    <button onclick="filterTable('rooms','empty')">
+                    <button onclick="filterTable('rooms','all', this)" class="active">Tất cả</button>
+                    <button onclick="filterTable('rooms','empty', this)">
                       Trống
                     </button>
-                    <button onclick="filterTable('rooms','booked')">
+                    <button onclick="filterTable('rooms','booked', this)">
                       Đã đặt
                     </button>
                   </div>
@@ -1303,13 +1304,13 @@
                     </button>
                   </div>
                   <div class="filter-buttons">
-                    <button onclick="filterTable('services','all')">
+                    <button onclick="filterTable('services','all', this)" class="active">
                       Tất cả
                     </button>
-                    <button onclick="filterTable('services','cheap')">
+                    <button onclick="filterTable('services','cheap', this)">
                       Giá < 500k
                     </button>
-                    <button onclick="filterTable('services','exp')">
+                    <button onclick="filterTable('services','exp', this)">
                       Giá >= 500k
                     </button>
                   </div>
@@ -1367,13 +1368,13 @@
                     </button>
                   </div>
                   <div class="filter-buttons">
-                    <button onclick="filterTable('bookings','all')">
+                    <button onclick="filterTable('bookings','all', this)" class="active">
                       Tất cả
                     </button>
-                    <button onclick="filterTable('bookings','active')">
+                    <button onclick="filterTable('bookings','active', this)">
                       Hoạt động
                     </button>
-                    <button onclick="filterTable('bookings','past')">
+                    <button onclick="filterTable('bookings','past', this)">
                       Quá hạn
                     </button>
                   </div>
@@ -1425,7 +1426,7 @@
                     </button>
                   </div>
                   <div class="filter-buttons">
-                    <button onclick="filterTable('invoices','all')">
+                    <button onclick="filterTable('invoices','all', this)" class="active">
                       Tất cả
                     </button>
                   </div>
@@ -1473,7 +1474,7 @@
                     </button>
                   </div>
                   <div class="filter-buttons">
-                    <button onclick="filterTable('usage','all')">Tất cả</button>
+                    <button onclick="filterTable('usage','all', this)" class="active">Tất cả</button>
                   </div>
                 </div>
                 <table id="table-usage">
@@ -1520,13 +1521,13 @@
                     </button>
                   </div>
                   <div class="filter-buttons">
-                    <button onclick="filterTable('users','all')">
+                    <button onclick="filterTable('users','all', this)" class="active">
                       Tất cả
                     </button>
-                    <button onclick="filterTable('users','active')">
+                    <button onclick="filterTable('users','active', this)">
                       Đang hoạt động
                     </button>
-                    <button onclick="filterTable('users','inactive')">
+                    <button onclick="filterTable('users','inactive', this)">
                       Đã vô hiệu hóa
                     </button>
                   </div>
@@ -1641,10 +1642,25 @@
       }
 
       // Simple filtering/searching
-      function filterTable(kind, mode) {
+      function filterTable(kind, mode, buttonElement) {
+        // Update active state of filter buttons
+        const pageElement = document.getElementById("page-" + kind);
+        if (pageElement) {
+          const filterContainer = pageElement.querySelector(".filter-buttons");
+          if (filterContainer) {
+            filterContainer.querySelectorAll('button').forEach(btn => {
+              btn.classList.remove('active');
+            });
+            if (buttonElement) {
+              buttonElement.classList.add('active');
+            }
+          }
+        }
+        
         const tb = document
           .getElementById("table-" + kind)
           .querySelector("tbody");
+        if (!tb) return;
         const rows = Array.from(tb.querySelectorAll("tr"));
         rows.forEach((r) => (r.style.display = ""));
         if (mode === "all") return;

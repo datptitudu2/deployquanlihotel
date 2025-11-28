@@ -1193,20 +1193,30 @@ window.handleUserSubmit = handleUserSubmit;
 window.editUser = editUser;
 window.deleteUser = deleteUser;
 window.loadUsers = loadUsers;
+window.deleteBooking = deleteBooking;
+window.deleteService = deleteService;
+window.deleteCustomer = deleteCustomer;
+window.deleteRoom = deleteRoom;
 
 window.deleteItem = async function (type, id) {
   if (!confirm(`Xóa ${id}?`)) return;
   try {
     if (type === "customers") {
-      await CustomerAPI.delete(id);
+      const response = await fetch(`${API_BASE}/customers/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Xóa khách hàng thất bại');
       await loadCustomers();
     } else if (type === "rooms") {
-      await RoomAPI.delete(id);
+      const response = await fetch(`${API_BASE}/rooms/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Xóa phòng thất bại');
       await loadRooms();
+    } else if (type === "services") {
+      const response = await fetch(`${API_BASE}/services/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Xóa dịch vụ thất bại');
+      await loadServices();
     }
-    alert("Xóa thành công");
+    alert("✅ Xóa thành công");
   } catch (error) {
-    alert("Lỗi khi xóa: " + error.message);
+    alert("❌ Lỗi khi xóa: " + error.message);
   }
 };
 
@@ -1220,7 +1230,22 @@ async function deleteService(serviceId) {
   await deleteItem("services", serviceId);
 }
 async function deleteBooking(bookingId) {
-  alert("Chức năng xóa booking chưa khả dụng");
+  if (!confirm(`Xóa đặt phòng #${bookingId}?`)) return;
+  try {
+    const response = await fetch(`${API_BASE}/bookings/${bookingId}`, {
+      method: 'DELETE'
+    });
+    const result = await response.json();
+    if (response.ok) {
+      alert('✅ Xóa đặt phòng thành công!');
+      loadBookings();
+      loadDashboardStats();
+    } else {
+      alert('❌ Lỗi: ' + (result.error || 'Xóa thất bại'));
+    }
+  } catch (error) {
+    alert('❌ Lỗi: ' + error.message);
+  }
 }
 
 function generateId(kind) {
