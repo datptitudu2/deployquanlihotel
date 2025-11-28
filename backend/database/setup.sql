@@ -1,6 +1,6 @@
--- Tạo database và user
-CREATE DATABASE IF NOT EXISTS hotel_management;
-USE hotel_management;
+-- Database đã được tạo sẵn trên Clever Cloud
+-- Sử dụng database: btqaqrhlubq9jx1mnksw
+USE btqaqrhlubq9jx1mnksw;
 
 -- Bảng KHACH_HANG
 CREATE TABLE IF NOT EXISTS KHACH_HANG (

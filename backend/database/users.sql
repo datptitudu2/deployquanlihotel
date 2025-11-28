@@ -1,5 +1,5 @@
 -- Bảng USERS cho hệ thống đăng nhập
-USE hotel_management;
+USE btqaqrhlubq9jx1mnksw;
 
 CREATE TABLE IF NOT EXISTS USERS (
     MaUser INT PRIMARY KEY AUTO_INCREMENT,

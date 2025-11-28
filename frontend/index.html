@@ -2136,7 +2136,7 @@
     // Nếu deploy lên Render, sửa dòng dưới thành Backend URL thực tế
     const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
     window.API_BASE = isProduction 
-      ? "https://your-backend.onrender.com/api"  // ⚠️ SỬA THÀNH BACKEND URL THỰC TẾ CỦA BẠN
+      ? "https://deployquanlihotel.onrender.com/api"  // Backend URL production
       : "http://localhost:3001/api";  // Local development
     const API_BASE = window.API_BASE;
     
