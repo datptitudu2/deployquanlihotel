@@ -330,10 +330,13 @@
         visibility: visible !important;
       }
       /* Override ANY display: none for active pages - CRITICAL - Highest specificity */
+      /* Match various forms of display: none in inline styles */
       .page.active[style*="display: none"],
       .page.active[style*="display:none"],
       .page.active[style*="display: none !important"],
-      .page.active[style*="display:none !important"] {
+      .page.active[style*="display:none !important"],
+      .page.active[style*="display: none!important"],
+      .page.active[style*="display:none!important"] {
         display: block !important;
         opacity: 1 !important;
         visibility: visible !important;

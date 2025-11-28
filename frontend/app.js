@@ -223,8 +223,20 @@ function displayRooms(rooms) {
   const tbody = document.querySelector("#table-rooms tbody");
   if (!tbody) {
     console.error("❌ Không tìm thấy #table-rooms tbody");
+    const table = document.querySelector("#table-rooms");
+    console.error("   - Table element:", table);
+    console.error("   - Page element:", document.getElementById("page-rooms"));
     return;
   }
+
+  // Check if table is visible
+  const table = document.querySelector("#table-rooms");
+  const tableDisplay = window.getComputedStyle(table).display;
+  const tableWrapper = table?.closest('.table-wrapper');
+  const wrapperDisplay = tableWrapper ? window.getComputedStyle(tableWrapper).display : 'N/A';
+  console.log("   - Table display:", tableDisplay);
+  console.log("   - Table wrapper display:", wrapperDisplay);
+  console.log("   - Tbody found:", !!tbody);
 
   tbody.innerHTML = "";
   console.log("✅ Đã clear tbody phòng");
@@ -266,6 +278,21 @@ function displayRooms(rooms) {
   });
 
   console.log("✅ Đã hiển thị xong", rooms.length, "phòng");
+  
+  // Final check: verify rows were added
+  const rows = tbody.querySelectorAll('tr');
+  console.log("   - Số rows trong tbody:", rows.length);
+  if (rows.length === 0) {
+    console.error("❌ CRITICAL: Không có rows nào được thêm vào tbody!");
+  } else {
+    console.log("   - Row đầu tiên:", rows[0]);
+  }
+  
+  // Check table visibility again
+  const finalTableDisplay = window.getComputedStyle(table).display;
+  if (finalTableDisplay === 'none') {
+    console.error("❌ CRITICAL: Table bị ẩn (display=none)!");
+  }
 }
 
 function displayServices(services) {
@@ -1723,22 +1750,47 @@ window.showPage = async function(page) {
     void el.offsetHeight;
     
     // SAU ĐÓ mới hide các pages khác - đảm bảo không hide page hiện tại
+    // Collect all pages to hide first, then hide them
+    const pagesToHide = [];
     document.querySelectorAll(".page").forEach((p) => {
-      // Double check: không hide page hiện tại
-      if (p.id !== currentPageId && p !== el) {
-        p.classList.remove('active');
-        p.style.setProperty('display', 'none', 'important');
+      // Triple check: không hide page hiện tại
+      if (p.id !== currentPageId && p !== el && p.id) {
+        pagesToHide.push(p);
       }
     });
     
-    // Triple check: đảm bảo page hiện tại vẫn hiển thị
+    // Hide other pages
+    pagesToHide.forEach((p) => {
+      p.classList.remove('active');
+      p.style.setProperty('display', 'none', 'important');
+    });
+    
+    // CRITICAL: Force page hiện tại hiển thị lại SAU KHI hide các pages khác
+    // Đảm bảo không bị ảnh hưởng bởi bất kỳ code nào khác
+    el.classList.add('active');
+    el.style.setProperty('display', 'block', 'important');
+    el.style.setProperty('opacity', '1', 'important');
+    el.style.setProperty('visibility', 'visible', 'important');
+    
+    // Force reflow
+    void el.offsetHeight;
+    
+    // Final check: đảm bảo computed style là block
     const computedDisplay = window.getComputedStyle(el).display;
-    if (computedDisplay === 'none' || el.style.getPropertyValue('display') === 'none') {
-      console.warn('⚠️ Page bị ẩn, đang fix lại...', page);
+    if (computedDisplay === 'none') {
+      console.error('❌ CRITICAL: Page bị ẩn sau khi hide other pages!', page, 'Fixing...');
+      // Force remove any display: none
+      el.style.removeProperty('display');
+      el.style.removeProperty('opacity');
+      el.style.removeProperty('visibility');
+      // Set lại với !important
+      el.classList.add('active');
       el.style.setProperty('display', 'block', 'important');
       el.style.setProperty('opacity', '1', 'important');
       el.style.setProperty('visibility', 'visible', 'important');
-      el.classList.add('active');
+      // Force reflow again
+      void el.offsetHeight;
+      console.log('   - After fix, computed:', window.getComputedStyle(el).display);
     }
     
     console.log('✅ Đã hiển thị page:', page, el, 'display:', el.style.display, 'computed:', window.getComputedStyle(el).display);
@@ -1850,30 +1902,55 @@ window.showPage = async function(page) {
         });
       });
       
-      // Final check và log chi tiết
+      // Final check và log chi tiết - CHỈ dựa vào computed style
       const finalComputed = window.getComputedStyle(el).display;
-      const finalInline = el.style.getPropertyValue('display');
       const hasActive = el.classList.contains('active');
       const hasLoading = el.classList.contains('loading');
       
       console.log('✅ Final state - page:', page);
-      console.log('   - inline display:', finalInline);
       console.log('   - computed display:', finalComputed);
       console.log('   - has active class:', hasActive);
       console.log('   - has loading class:', hasLoading);
-      console.log('   - element:', el);
       
-      // Nếu vẫn bị ẩn, force hiển thị lại
-      if (finalComputed === 'none' || !hasActive) {
-        console.error('❌ Page bị ẩn sau tất cả checks! Đang force hiển thị...', page);
+      // CRITICAL: Nếu computed style là none, force hiển thị lại
+      // Không check inline style vì có thể có !important conflict
+      if (finalComputed === 'none') {
+        console.error('❌ CRITICAL ERROR: Page bị ẩn (computed=none)! Đang force hiển thị...', page);
+        // Remove ALL display-related properties first
+        el.style.removeProperty('display');
+        el.style.removeProperty('opacity');
+        el.style.removeProperty('visibility');
+        // Force reflow
+        void el.offsetHeight;
+        // Set lại với !important
         el.classList.add('active');
         el.classList.remove('loading');
         el.style.setProperty('display', 'block', 'important');
         el.style.setProperty('opacity', '1', 'important');
         el.style.setProperty('visibility', 'visible', 'important');
-        // Force reflow
+        // Force reflow again
         void el.offsetHeight;
-        console.log('   - After fix, computed:', window.getComputedStyle(el).display);
+        const afterFix = window.getComputedStyle(el).display;
+        console.log('   - After fix, computed:', afterFix);
+        if (afterFix === 'none') {
+          console.error('❌❌❌ VẪN BỊ ẨN SAU KHI FIX! Có thể do CSS hoặc code khác đang override!');
+        }
+      } else if (!hasActive) {
+        // Nếu không có active class, thêm lại
+        el.classList.add('active');
+      }
+      
+      // Additional check: đảm bảo page có kích thước và không bị che
+      const rect = el.getBoundingClientRect();
+      const computedHeight = window.getComputedStyle(el).height;
+      const computedWidth = window.getComputedStyle(el).width;
+      if (finalComputed === 'block' && (rect.height === 0 || rect.width === 0)) {
+        console.warn('⚠️ Page có display:block nhưng không có kích thước!', {
+          height: rect.height,
+          width: rect.width,
+          computedHeight,
+          computedWidth
+        });
       }
     }
     
