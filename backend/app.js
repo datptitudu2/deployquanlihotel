@@ -30,6 +30,120 @@ connection.connect((err) => {
         console.log('✅ Connected to hotel_management database');
 });
 
+// ==================== AUTHENTICATION API ====================
+app.post('/api/auth/login', (req, res) => {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Username và password là bắt buộc' });
+    }
+    
+    const query = 'SELECT * FROM USERS WHERE Username = ? AND TrangThai = "active"';
+    
+    connection.query(query, [username], (err, results) => {
+        if (err) {
+            console.error('Lỗi query login:', err);
+            return res.status(500).json({ error: 'Lỗi server' });
+        }
+        
+        if (results.length === 0) {
+            return res.status(401).json({ error: 'Tên đăng nhập hoặc mật khẩu không đúng' });
+        }
+        
+        const user = results[0];
+        
+        // So sánh password (trong production nên dùng bcrypt)
+        if (user.Password !== password) {
+            return res.status(401).json({ error: 'Tên đăng nhập hoặc mật khẩu không đúng' });
+        }
+        
+        // Tạo token đơn giản (trong production nên dùng JWT)
+        const token = Buffer.from(`${user.MaUser}:${user.Username}:${Date.now()}`).toString('base64');
+        
+        // Trả về thông tin user (không bao gồm password)
+        const { Password, ...userWithoutPassword } = user;
+        
+        res.json({
+            success: true,
+            token: token,
+            user: userWithoutPassword
+        });
+    });
+});
+
+// ==================== USERS MANAGEMENT API (Admin only) ====================
+app.get('/api/users', (req, res) => {
+    const query = 'SELECT MaUser, Username, HoTen, Email, VaiTro, TrangThai, NgayTao, NgayCapNhat FROM USERS ORDER BY MaUser';
+    
+    connection.query(query, (err, results) => {
+        if (err) {
+            console.error('Lỗi query users:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        res.json(results || []);
+    });
+});
+
+app.post('/api/users', (req, res) => {
+    const { Username, Password, HoTen, Email, VaiTro, TrangThai } = req.body;
+    
+    if (!Username || !Password || !HoTen) {
+        return res.status(400).json({ error: 'Username, Password và Họ tên là bắt buộc' });
+    }
+    
+    const query = 'INSERT INTO USERS (Username, Password, HoTen, Email, VaiTro, TrangThai) VALUES (?, ?, ?, ?, ?, ?)';
+    
+    connection.query(query, [Username, Password, HoTen, Email || null, VaiTro || 'nhan_vien', TrangThai || 'active'], (err, results) => {
+        if (err) {
+            console.error('Lỗi tạo user:', err);
+            if (err.code === 'ER_DUP_ENTRY') {
+                return res.status(400).json({ error: 'Username đã tồn tại' });
+            }
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: 'Nhân viên thêm thành công', id: results.insertId });
+    });
+});
+
+app.put('/api/users/:id', (req, res) => {
+    const { Username, Password, HoTen, Email, VaiTro, TrangThai } = req.body;
+    
+    // Nếu có password, cập nhật cả password
+    if (Password && Password.trim() !== '') {
+        const query = 'UPDATE USERS SET Username=?, Password=?, HoTen=?, Email=?, VaiTro=?, TrangThai=? WHERE MaUser=?';
+        connection.query(query, [Username, Password, HoTen, Email || null, VaiTro, TrangThai, req.params.id], (err, results) => {
+            if (err) {
+                console.error('Lỗi cập nhật user:', err);
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ message: 'Nhân viên cập nhật thành công' });
+        });
+    } else {
+        // Không có password, chỉ cập nhật các trường khác
+        const query = 'UPDATE USERS SET Username=?, HoTen=?, Email=?, VaiTro=?, TrangThai=? WHERE MaUser=?';
+        connection.query(query, [Username, HoTen, Email || null, VaiTro, TrangThai, req.params.id], (err, results) => {
+            if (err) {
+                console.error('Lỗi cập nhật user:', err);
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ message: 'Nhân viên cập nhật thành công' });
+        });
+    }
+});
+
+app.delete('/api/users/:id', (req, res) => {
+    // Thay vì xóa, vô hiệu hóa user
+    const query = 'UPDATE USERS SET TrangThai="inactive" WHERE MaUser=?';
+    
+    connection.query(query, [req.params.id], (err, results) => {
+        if (err) {
+            console.error('Lỗi vô hiệu hóa user:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: 'Nhân viên đã được vô hiệu hóa' });
+    });
+});
+
 // ==================== CUSTOMERS API ====================
 app.get('/api/customers', (req, res) => {
     connection.query('SELECT * FROM KHACH_HANG ORDER BY MaKH', (err, results) => {
