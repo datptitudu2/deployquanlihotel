@@ -207,27 +207,27 @@ app.get('/api/rooms', (req, res) => {
 });
 
 app.post('/api/rooms', (req, res) => {
-    const { MaPhong, LoaiPhong, Tang, TinhTrang, SoNguoiToiDa, GiaPhong } = req.body;
-    const query = 'INSERT INTO phong (MaPhong, LoaiPhong, Tang, TinhTrang, SoNguoiToiDa, GiaPhong) VALUES (?, ?, ?, ?, ?, ?)';
+    const { SoPhong, MaLoai, TinhTrang } = req.body;
+    const query = 'INSERT INTO PHONG (SoPhong, MaLoai, TinhTrang) VALUES (?, ?, ?)';
     
-    connection.query(query, [MaPhong, LoaiPhong, Tang, TinhTrang, SoNguoiToiDa, GiaPhong], (err, results) => {
+    connection.query(query, [SoPhong, MaLoai || 1, TinhTrang || 'trong'], (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json({ message: 'Phòng thêm thành công', id: MaPhong });
+        res.json({ message: 'Phòng thêm thành công', id: results.insertId });
     });
 });
 
 app.put('/api/rooms/:id', (req, res) => {
-    const { LoaiPhong, Tang, TinhTrang, SoNguoiToiDa, GiaPhong } = req.body;
-    const query = 'UPDATE phong SET LoaiPhong=?, Tang=?, TinhTrang=?, SoNguoiToiDa=?, GiaPhong=? WHERE MaPhong=?';
+    const { SoPhong, MaLoai, TinhTrang } = req.body;
+    const query = 'UPDATE PHONG SET SoPhong=?, MaLoai=?, TinhTrang=? WHERE MaPhong=?';
     
-    connection.query(query, [LoaiPhong, Tang, TinhTrang, SoNguoiToiDa, GiaPhong, req.params.id], (err, results) => {
+    connection.query(query, [SoPhong, MaLoai, TinhTrang, req.params.id], (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: 'Phòng cập nhật thành công' });
     });
 });
 
 app.delete('/api/rooms/:id', (req, res) => {
-    connection.query('DELETE FROM phong WHERE MaPhong = ?', [req.params.id], (err, results) => {
+    connection.query('DELETE FROM PHONG WHERE MaPhong = ?', [req.params.id], (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: 'Phòng xóa thành công' });
     });
