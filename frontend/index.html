@@ -2139,6 +2139,7 @@
       ? "https://deployquanlihotel.onrender.com/api"  // Backend URL production
       : "http://localhost:3001/api";  // Local development
     const API_BASE = window.API_BASE;
+    console.log('API_BASE:', API_BASE, 'isProduction:', isProduction, 'hostname:', window.location.hostname);
     
     // Get auth token
     function getAuthToken() {
