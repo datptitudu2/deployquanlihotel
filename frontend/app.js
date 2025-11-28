@@ -1812,3 +1812,40 @@ window.showQRPayment = showQRPayment;
 window.closeQRPaymentModal = closeQRPaymentModal;
 window.confirmQRPayment = confirmQRPayment;
 window.stopAutoPaymentCheck = stopAutoPaymentCheck;
+
+// ==================== NAVIGATION & UTILITIES ====================
+// Handle navigation button clicks
+document.addEventListener('DOMContentLoaded', function() {
+  const navButtons = document.querySelectorAll('.nav button');
+  
+  navButtons.forEach((btn) => {
+    btn.addEventListener('click', function() {
+      navButtons.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      const page = btn.dataset.page;
+      if (window.showPage) {
+        window.showPage(page);
+      }
+    });
+  });
+});
+
+// Utility functions
+function deleteRow(btn) {
+  const tr = btn.closest('tr');
+  if (!tr) return;
+  if (confirm('Bạn có chắc muốn xóa dòng này?')) tr.remove();
+}
+
+function filterTable(kind, mode) {
+  const tb = document.getElementById('table-' + kind)?.querySelector('tbody');
+  if (!tb) return;
+  const rows = Array.from(tb.querySelectorAll('tr'));
+  rows.forEach((r) => (r.style.display = ''));
+  if (mode === 'all') return;
+  // Add more filtering logic as needed
+}
+
+// Make utilities global
+window.deleteRow = deleteRow;
+window.filterTable = filterTable;
