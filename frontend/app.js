@@ -1635,13 +1635,24 @@ window.showPage = async function(page) {
     }
     
     // CRITICAL: Remove display: none trước khi set display: block
-    el.style.removeProperty('display');
+    // Dùng cả removeProperty và set trực tiếp để đảm bảo
+    if (el.style.display === 'none' || el.style.getPropertyValue('display') === 'none') {
+      el.style.removeProperty('display');
+      // Force remove bằng cách set empty string
+      el.style.display = '';
+    }
     
     // Show page - SỬA: Thêm class active và set display với !important
     el.classList.add('active');
     el.style.setProperty('display', 'block', 'important');
     el.style.setProperty('opacity', '1', 'important');
     el.style.setProperty('visibility', 'visible', 'important');
+    
+    // Double check - nếu vẫn có display: none, force remove
+    if (el.style.display === 'none') {
+      el.style.display = '';
+      el.style.setProperty('display', 'block', 'important');
+    }
     
     // Force immediate reflow để đảm bảo styles được apply
     void el.offsetHeight;
@@ -1704,7 +1715,11 @@ window.showPage = async function(page) {
       hidePageLoading(el);
       
       // CRITICAL: Remove display: none trước khi set display: block
-      el.style.removeProperty('display');
+      // Dùng nhiều cách để đảm bảo remove hoàn toàn
+      if (el.style.display === 'none' || el.style.getPropertyValue('display') === 'none') {
+        el.style.removeProperty('display');
+        el.style.display = ''; // Force remove
+      }
       
       // Đảm bảo page vẫn hiển thị sau khi hide loading - dùng setProperty với important
       el.classList.add('active');
@@ -1716,13 +1731,17 @@ window.showPage = async function(page) {
       void el.offsetHeight;
       
       // Set lại display sau reflow - remove và set lại để đảm bảo không bị override
-      el.style.removeProperty('display');
+      if (el.style.display === 'none') {
+        el.style.display = '';
+      }
       el.style.setProperty('display', 'block', 'important');
       
       // Double check sau một frame - remove và set lại
       requestAnimationFrame(() => {
         if (el && el.classList.contains('active')) {
-          el.style.removeProperty('display');
+          if (el.style.display === 'none') {
+            el.style.display = '';
+          }
           el.style.setProperty('display', 'block', 'important');
           el.style.setProperty('opacity', '1', 'important');
           el.style.setProperty('visibility', 'visible', 'important');
@@ -1733,7 +1752,9 @@ window.showPage = async function(page) {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           if (el && el.classList.contains('active')) {
-            el.style.removeProperty('display');
+            if (el.style.display === 'none') {
+              el.style.display = '';
+            }
             el.style.setProperty('display', 'block', 'important');
           }
         });
