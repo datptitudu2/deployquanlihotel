@@ -1916,9 +1916,9 @@ window.showPage = async function(page) {
       const computedDisplay = window.getComputedStyle(el).display;
       if (computedDisplay === 'none') {
         console.warn('⚠️ Page bị ẩn sau hidePageLoading, đang fix lại...', page);
-        el.style.setProperty('display', 'block', 'important');
-        el.style.setProperty('opacity', '1', 'important');
-        el.style.setProperty('visibility', 'visible', 'important');
+      el.style.setProperty('display', 'block', 'important');
+      el.style.setProperty('opacity', '1', 'important');
+      el.style.setProperty('visibility', 'visible', 'important');
         el.classList.add('active');
       }
       
@@ -1928,9 +1928,9 @@ window.showPage = async function(page) {
           el.classList.remove('loading');
           const computed = window.getComputedStyle(el).display;
           if (computed === 'none') {
-            el.style.setProperty('display', 'block', 'important');
-            el.style.setProperty('opacity', '1', 'important');
-            el.style.setProperty('visibility', 'visible', 'important');
+          el.style.setProperty('display', 'block', 'important');
+          el.style.setProperty('opacity', '1', 'important');
+          el.style.setProperty('visibility', 'visible', 'important');
           }
         }
       });
@@ -1973,9 +1973,9 @@ window.showPage = async function(page) {
         // Set lại với !important
         el.classList.add('active');
         el.classList.remove('loading');
-        el.style.setProperty('display', 'block', 'important');
-        el.style.setProperty('opacity', '1', 'important');
-        el.style.setProperty('visibility', 'visible', 'important');
+            el.style.setProperty('display', 'block', 'important');
+            el.style.setProperty('opacity', '1', 'important');
+            el.style.setProperty('visibility', 'visible', 'important');
         // Force reflow again
         void el.offsetHeight;
         const afterFix = window.getComputedStyle(el).display;
@@ -2009,34 +2009,62 @@ window.showPage = async function(page) {
           childrenCount: el.children.length
         });
         
-        // Check parent
-        const parent = el.parentElement;
+        // Check parent - tìm parent thực sự (không phải page khác)
+        let parent = el.parentElement;
+        let parentLevel = 0;
+        while (parent && parent.classList.contains('page') && parentLevel < 3) {
+          parent = parent.parentElement;
+          parentLevel++;
+        }
+        
         if (parent) {
           const parentDisplay = window.getComputedStyle(parent).display;
           const parentHeight = window.getComputedStyle(parent).height;
           const parentRect = parent.getBoundingClientRect();
-          console.log('   - Parent:', {
+          console.log('   - Parent (real):', {
             tag: parent.tagName,
             class: parent.className,
             display: parentDisplay,
             height: parentHeight,
             rectHeight: parentRect.height,
-            rectWidth: parentRect.width
+            rectWidth: parentRect.width,
+            level: parentLevel
           });
-        }
-        
-        // Force set min-height và width
-        // Nếu parent có height, dùng 100%, nếu không dùng viewport height
-        const parentEl = el.parentElement;
-        let minHeight = '100%';
-        if (parentEl) {
-          const parentRect = parentEl.getBoundingClientRect();
-          if (parentRect.height === 0) {
-            // Parent không có height, dùng viewport height
-            minHeight = 'calc(100vh - 200px)'; // Trừ đi header và padding
+          
+          // CRITICAL: Nếu parent bị ẩn, force hiển thị nó
+          if (parentDisplay === 'none' || parentRect.height === 0) {
+            console.warn('⚠️ Parent bị ẩn! Đang force hiển thị...');
+            // Nếu là .content, force hiển thị
+            if (parent.classList.contains('content')) {
+              parent.style.setProperty('display', 'flex', 'important');
+              parent.style.setProperty('height', 'auto', 'important');
+              parent.style.setProperty('min-height', '100%', 'important');
+            } else if (parent.id === 'pages') {
+              parent.style.setProperty('display', 'block', 'important');
+              parent.style.setProperty('height', 'auto', 'important');
+            } else {
+              // Các parent khác
+              parent.style.setProperty('display', 'block', 'important');
+              parent.style.setProperty('height', 'auto', 'important');
+            }
           }
         }
-        el.style.setProperty('min-height', minHeight, 'important');
+        
+        // Force set min-height và width cho page
+        // Sử dụng parent đã tìm được ở trên
+        let pageMinHeight = '100%';
+        if (parent) {
+          const parentRectAfterFix = parent.getBoundingClientRect();
+          const parentDisplayAfterFix = window.getComputedStyle(parent).display;
+          
+          // Nếu parent vẫn không có height sau khi fix
+          if (parentDisplayAfterFix === 'none' || parentRectAfterFix.height === 0) {
+            // Dùng viewport height
+            pageMinHeight = 'calc(100vh - 200px)';
+          }
+        }
+        
+        el.style.setProperty('min-height', pageMinHeight, 'important');
         el.style.setProperty('width', '100%', 'important');
         el.style.setProperty('height', 'auto', 'important');
         
