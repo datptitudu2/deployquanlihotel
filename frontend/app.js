@@ -1528,10 +1528,22 @@ async function updateBookingStatus(bookingId, newStatus) {
 // Override showPage to load dashboard stats
 const originalShowPage = window.showPage || showPage;
 window.showPage = function(page) {
-  // Hide all pages
-  document.querySelectorAll(".page").forEach((p) => (p.style.display = "none"));
+  // Hide all pages - chỉ dùng class, không set inline style
+  document.querySelectorAll(".page").forEach((p) => {
+    p.classList.remove("active");
+  });
+  
   const el = document.getElementById("page-" + page);
-  if (el) el.style.display = "block";
+  if (el) {
+    el.classList.add("active");
+    // Xóa các inline style phức tạp nếu có
+    el.style.removeProperty('height');
+    el.style.removeProperty('min-height');
+    el.style.removeProperty('width');
+    el.style.removeProperty('opacity');
+    el.style.removeProperty('visibility');
+  }
+  
   const panelTitle = document.getElementById("panelTitle");
   if (panelTitle) {
     panelTitle.textContent =

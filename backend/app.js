@@ -35,43 +35,74 @@ connection.connect((err) => {
 
 // ==================== AUTHENTICATION API ====================
 app.post('/api/auth/login', (req, res) => {
-    const { username, password } = req.body;
-    
-    if (!username || !password) {
-        return res.status(400).json({ error: 'Username và password là bắt buộc' });
-    }
-    
-    const query = 'SELECT * FROM USERS WHERE Username = ? AND TrangThai = "active"';
-    
-    connection.query(query, [username], (err, results) => {
-        if (err) {
-            console.error('Lỗi query login:', err);
-            return res.status(500).json({ error: 'Lỗi server' });
+    try {
+        const { username, password } = req.body;
+        
+        if (!username || !password) {
+            return res.status(400).json({ error: 'Username và password là bắt buộc' });
         }
         
-        if (results.length === 0) {
-            return res.status(401).json({ error: 'Tên đăng nhập hoặc mật khẩu không đúng' });
+        // Kiểm tra connection state và reconnect nếu cần
+        if (connection.state === 'disconnected') {
+            console.log('⚠️ Database disconnected, attempting to reconnect...');
+            connection.connect((err) => {
+                if (err) {
+                    console.error('❌ Reconnection failed:', err);
+                    return res.status(500).json({ error: 'Lỗi kết nối database. Vui lòng thử lại sau.' });
+                }
+                console.log('✅ Database reconnected');
+            });
         }
         
-        const user = results[0];
+        const query = 'SELECT * FROM USERS WHERE Username = ? AND TrangThai = "active"';
         
-        // So sánh password (trong production nên dùng bcrypt)
-        if (user.Password !== password) {
-            return res.status(401).json({ error: 'Tên đăng nhập hoặc mật khẩu không đúng' });
-        }
-        
-        // Tạo token đơn giản (trong production nên dùng JWT)
-        const token = Buffer.from(`${user.MaUser}:${user.Username}:${Date.now()}`).toString('base64');
-        
-        // Trả về thông tin user (không bao gồm password)
-        const { Password, ...userWithoutPassword } = user;
-        
-        res.json({
-            success: true,
-            token: token,
-            user: userWithoutPassword
+        connection.query(query, [username], (err, results) => {
+            if (err) {
+                console.error('❌ Lỗi query login:', err);
+                console.error('Error code:', err.code);
+                console.error('Error message:', err.message);
+                
+                // Xử lý các lỗi cụ thể
+                if (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT' || err.code === 'PROTOCOL_CONNECTION_LOST') {
+                    return res.status(500).json({ error: 'Không thể kết nối đến database. Vui lòng thử lại sau.' });
+                }
+                if (err.code === 'ER_NO_SUCH_TABLE') {
+                    return res.status(500).json({ error: 'Bảng USERS không tồn tại. Vui lòng chạy script setup database.' });
+                }
+                if (err.code === 'ER_ACCESS_DENIED_ERROR') {
+                    return res.status(500).json({ error: 'Lỗi xác thực database. Vui lòng kiểm tra cấu hình.' });
+                }
+                
+                return res.status(500).json({ error: 'Lỗi server: ' + (err.message || 'Vui lòng thử lại sau.') });
+            }
+            
+            if (results.length === 0) {
+                return res.status(401).json({ error: 'Tên đăng nhập hoặc mật khẩu không đúng' });
+            }
+            
+            const user = results[0];
+            
+            // So sánh password (trong production nên dùng bcrypt)
+            if (user.Password !== password) {
+                return res.status(401).json({ error: 'Tên đăng nhập hoặc mật khẩu không đúng' });
+            }
+            
+            // Tạo token đơn giản (trong production nên dùng JWT)
+            const token = Buffer.from(`${user.MaUser}:${user.Username}:${Date.now()}`).toString('base64');
+            
+            // Trả về thông tin user (không bao gồm password)
+            const { Password, ...userWithoutPassword } = user;
+            
+            res.json({
+                success: true,
+                token: token,
+                user: userWithoutPassword
+            });
         });
-    });
+    } catch (error) {
+        console.error('❌ Unexpected error in login:', error);
+        return res.status(500).json({ error: 'Lỗi server không mong đợi: ' + error.message });
+    }
 });
 
 // ==================== USERS MANAGEMENT API (Admin only) ====================
