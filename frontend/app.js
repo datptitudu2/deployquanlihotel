@@ -2033,8 +2033,22 @@ window.showPage = async function(page) {
         if (!parent || parentLevel >= maxLevel || parent.classList.contains('page')) {
           const pagesContainer = document.getElementById('pages');
           const contentContainer = document.querySelector('.content');
-          parent = pagesContainer || contentContainer || el.parentElement;
+          parent = contentContainer || pagesContainer || el.parentElement;
           console.warn('⚠️ Không tìm thấy parent container, dùng fallback:', parent?.id || parent?.className);
+        }
+        
+        // CRITICAL: Đảm bảo .content container cũng được hiển thị
+        const contentContainer = document.querySelector('.content');
+        if (contentContainer && contentContainer !== parent) {
+          const contentDisplay = window.getComputedStyle(contentContainer).display;
+          const contentRect = contentContainer.getBoundingClientRect();
+          if (contentDisplay === 'none' || contentRect.height === 0) {
+            console.warn('⚠️ .content container bị ẩn! Đang force hiển thị...');
+            contentContainer.style.setProperty('display', 'flex', 'important');
+            contentContainer.style.setProperty('height', 'auto', 'important');
+            contentContainer.style.setProperty('min-height', '100%', 'important');
+            void contentContainer.offsetHeight; // Force reflow
+          }
         }
         
         if (parent) {
@@ -2100,9 +2114,28 @@ window.showPage = async function(page) {
           }
         }
         
+        // Force set height và width cho page
+        // Nếu min-height không đủ, dùng height trực tiếp
         el.style.setProperty('min-height', pageMinHeight, 'important');
         el.style.setProperty('width', '100%', 'important');
         el.style.setProperty('height', 'auto', 'important');
+        
+        // CRITICAL: Nếu vẫn không có height, force set height cụ thể
+        // Đợi một chút để browser render, sau đó check lại
+        requestAnimationFrame(() => {
+          const checkRect = el.getBoundingClientRect();
+          if (checkRect.height === 0) {
+            console.warn('⚠️ Page vẫn height: 0 sau khi set styles, force set height cụ thể...');
+            // Tính height từ viewport
+            const viewportHeight = window.innerHeight;
+            const headerHeight = document.querySelector('.panel .head')?.offsetHeight || 80;
+            const padding = 48; // 24px top + 24px bottom
+            const calculatedHeight = viewportHeight - headerHeight - padding;
+            el.style.setProperty('height', `${calculatedHeight}px`, 'important');
+            el.style.setProperty('min-height', `${calculatedHeight}px`, 'important');
+            console.log('   - Set height to:', calculatedHeight, 'px');
+          }
+        });
         
         // Nếu vẫn không có kích thước sau khi fix, có thể do không có nội dung
         setTimeout(() => {
