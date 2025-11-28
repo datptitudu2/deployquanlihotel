@@ -2136,14 +2136,10 @@
   <!-- Scripts -->
   <script>
     // API Configuration - khai báo global
-    // Tự động detect API URL (production hoặc local)
-    // Nếu deploy lên Render, sửa dòng dưới thành Backend URL thực tế
-    const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-    window.API_BASE = isProduction 
-      ? "https://deployquanlihotel.onrender.com/api"  // Backend URL production
-      : "http://localhost:3001/api";  // Local development
+    // Sử dụng Backend URL production
+    window.API_BASE = "https://deployquanlihotel.onrender.com/api";
     const API_BASE = window.API_BASE;
-    console.log('API_BASE:', API_BASE, 'isProduction:', isProduction, 'hostname:', window.location.hostname);
+    console.log('API_BASE:', API_BASE, 'hostname:', window.location.hostname);
     
     // Get auth token
     function getAuthToken() {
