@@ -1,0 +1,455 @@
+const express = require('express');
+const cors = require('cors');
+const mysql = require('mysql2');
+require('dotenv').config();
+const app = express();
+
+// CORS configuration
+const corsOptions = {
+    origin: process.env.FRONTEND_URL || 'http://localhost:5500',
+    credentials: true
+};
+app.use(cors(corsOptions));
+app.use(express.json());
+
+// Database connection
+const connection = mysql.createConnection({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '123456',
+    database: process.env.DB_NAME || 'hotel_management',
+    port: process.env.DB_PORT || 3306,
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+});
+
+connection.connect((err) => {
+    if (err) {
+        console.error('❌ Database connection failed: ' + err.stack);
+        return;
+    }
+        console.log('✅ Connected to hotel_management database');
+});
+
+// ==================== CUSTOMERS API ====================
+app.get('/api/customers', (req, res) => {
+    connection.query('SELECT * FROM KHACH_HANG ORDER BY MaKH', (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
+
+app.post('/api/customers', (req, res) => {
+    const { HoTen, Email, SoDienThoai, CCCD, DiaChi } = req.body;
+    const query = 'INSERT INTO KHACH_HANG (HoTen, Email, SoDienThoai, CCCD, DiaChi) VALUES (?, ?, ?, ?, ?)';
+    
+    connection.query(query, [HoTen, Email, SoDienThoai, CCCD, DiaChi], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Khách hàng thêm thành công', id: results.insertId });
+    });
+});
+
+app.put('/api/customers/:id', (req, res) => {
+    const { HoTen, Email, SoDienThoai, CCCD, DiaChi } = req.body;
+    const query = 'UPDATE KHACH_HANG SET HoTen=?, Email=?, SoDienThoai=?, CCCD=?, DiaChi=? WHERE MaKH=?';
+    
+    connection.query(query, [HoTen, Email, SoDienThoai, CCCD, DiaChi, req.params.id], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Khách hàng cập nhật thành công' });
+    });
+});
+
+app.delete('/api/customers/:id', (req, res) => {
+    connection.query('DELETE FROM KHACH_HANG WHERE MaKH = ?', [req.params.id], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Khách hàng xóa thành công' });
+    });
+});
+
+// ==================== ROOMS API ====================
+app.get('/api/rooms', (req, res) => {
+    const query = `
+        SELECT 
+            p.MaPhong,
+            p.SoPhong,
+            lp.TenLoai AS LoaiPhong,
+            lp.GiaCoBan AS GiaPhong,
+            lp.SucChua AS SoNguoiToiDa,
+            p.TinhTrang,
+            CASE 
+                WHEN p.TinhTrang = 'trong' THEN 'Trống'
+                WHEN p.TinhTrang = 'da_dat' THEN 'Đã đặt'
+                WHEN p.TinhTrang = 'dang_su_dung' THEN 'Đang sử dụng'
+                WHEN p.TinhTrang = 'bao_tri' THEN 'Bảo trì'
+                ELSE p.TinhTrang
+            END AS TrangThai
+        FROM PHONG p
+        LEFT JOIN LOAIPHONG lp ON p.MaLoai = lp.MaLoai
+        ORDER BY p.SoPhong
+    `;
+    connection.query(query, (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
+
+app.post('/api/rooms', (req, res) => {
+    const { MaPhong, LoaiPhong, Tang, TinhTrang, SoNguoiToiDa, GiaPhong } = req.body;
+    const query = 'INSERT INTO phong (MaPhong, LoaiPhong, Tang, TinhTrang, SoNguoiToiDa, GiaPhong) VALUES (?, ?, ?, ?, ?, ?)';
+    
+    connection.query(query, [MaPhong, LoaiPhong, Tang, TinhTrang, SoNguoiToiDa, GiaPhong], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Phòng thêm thành công', id: MaPhong });
+    });
+});
+
+app.put('/api/rooms/:id', (req, res) => {
+    const { LoaiPhong, Tang, TinhTrang, SoNguoiToiDa, GiaPhong } = req.body;
+    const query = 'UPDATE phong SET LoaiPhong=?, Tang=?, TinhTrang=?, SoNguoiToiDa=?, GiaPhong=? WHERE MaPhong=?';
+    
+    connection.query(query, [LoaiPhong, Tang, TinhTrang, SoNguoiToiDa, GiaPhong, req.params.id], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Phòng cập nhật thành công' });
+    });
+});
+
+app.delete('/api/rooms/:id', (req, res) => {
+    connection.query('DELETE FROM phong WHERE MaPhong = ?', [req.params.id], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Phòng xóa thành công' });
+    });
+});
+
+// ==================== SERVICES API ====================
+app.get('/api/services', (req, res) => {
+    connection.query('SELECT * FROM DICHVU ORDER BY MaDV', (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
+
+app.post('/api/services', (req, res) => {
+    const { TenDV, MoTa, DonGia, DonViTinh } = req.body;
+    const query = 'INSERT INTO DICHVU (TenDV, MoTa, DonGia, DonViTinh) VALUES (?, ?, ?, ?)';
+    
+    connection.query(query, [TenDV, MoTa || null, DonGia, DonViTinh || null], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Dịch vụ thêm thành công', id: results.insertId });
+    });
+});
+
+app.put('/api/services/:id', (req, res) => {
+    const { TenDV, MoTa, DonGia, DonViTinh } = req.body;
+    const query = 'UPDATE DICHVU SET TenDV=?, MoTa=?, DonGia=?, DonViTinh=? WHERE MaDV=?';
+    
+    connection.query(query, [TenDV, MoTa || null, DonGia, DonViTinh || null, req.params.id], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Dịch vụ cập nhật thành công' });
+    });
+});
+
+app.delete('/api/services/:id', (req, res) => {
+    connection.query('DELETE FROM DICHVU WHERE MaDV = ?', [req.params.id], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Dịch vụ xóa thành công' });
+    });
+});
+
+// ==================== BOOKINGS API ====================
+app.get('/api/bookings', (req, res) => {
+    const query = `
+        SELECT 
+            dp.MaDatPhong AS MaDP,
+            dp.MaKH,
+            kh.HoTen AS TenKH,
+            p.SoPhong AS MaPhong,
+            lp.TenLoai AS LoaiPhong,
+            dp.NgayDat,
+            dp.NgayNhan,
+            dp.NgayTra,
+            dp.SoNguoi,
+            dp.TrangThai,
+            CASE 
+                WHEN dp.TrangThai = 'cho_xac_nhan' THEN 'Chờ xác nhận'
+                WHEN dp.TrangThai = 'da_xac_nhan' THEN 'Đã xác nhận'
+                WHEN dp.TrangThai = 'da_checkin' THEN 'Đã check-in'
+                WHEN dp.TrangThai = 'da_checkout' THEN 'Đã check-out'
+                WHEN dp.TrangThai = 'da_huy' THEN 'Đã hủy'
+                ELSE dp.TrangThai
+            END AS TrangThaiText,
+            dp.TongTien
+        FROM DATPHONG dp
+        JOIN KHACH_HANG kh ON dp.MaKH = kh.MaKH
+        JOIN PHONG p ON dp.MaPhong = p.MaPhong
+        LEFT JOIN LOAIPHONG lp ON p.MaLoai = lp.MaLoai
+        ORDER BY dp.NgayDat DESC
+    `;
+    connection.query(query, (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
+
+app.post('/api/bookings', (req, res) => {
+    const { MaKH, MaPhong, NgayNhan, NgayTra, SoNguoi, TrangThai, TongTien } = req.body;
+    const query = 'INSERT INTO DATPHONG (MaKH, MaPhong, NgayNhan, NgayTra, SoNguoi, TrangThai, TongTien) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    
+    connection.query(query, [MaKH, MaPhong, NgayNhan, NgayTra, SoNguoi, TrangThai || 'cho_xac_nhan', TongTien || 0], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Đặt phòng thành công', id: results.insertId });
+    });
+});
+
+app.put('/api/bookings/:id', (req, res) => {
+    const { MaKH, MaPhong, NgayNhan, NgayTra, SoNguoi, TrangThai, TongTien } = req.body;
+    
+    // Nếu chỉ có TrangThai, chỉ cập nhật trạng thái
+    if (Object.keys(req.body).length === 1 && req.body.TrangThai) {
+        const query = 'UPDATE DATPHONG SET TrangThai=? WHERE MaDatPhong=?';
+        connection.query(query, [TrangThai, req.params.id], (err, results) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ message: 'Trạng thái cập nhật thành công' });
+        });
+    } else {
+        // Cập nhật đầy đủ thông tin
+        const query = 'UPDATE DATPHONG SET MaKH=?, MaPhong=?, NgayNhan=?, NgayTra=?, SoNguoi=?, TrangThai=?, TongTien=? WHERE MaDatPhong=?';
+        connection.query(query, [MaKH, MaPhong, NgayNhan, NgayTra, SoNguoi, TrangThai, TongTien || 0, req.params.id], (err, results) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ message: 'Đặt phòng cập nhật thành công' });
+        });
+    }
+});
+
+// Endpoint riêng để cập nhật chỉ trạng thái
+app.put('/api/bookings/:id/status', (req, res) => {
+    const { TrangThai } = req.body;
+    const query = 'UPDATE DATPHONG SET TrangThai=? WHERE MaDatPhong=?';
+    
+    connection.query(query, [TrangThai, req.params.id], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Trạng thái cập nhật thành công' });
+    });
+});
+
+app.delete('/api/bookings/:id', (req, res) => {
+    connection.query('DELETE FROM DATPHONG WHERE MaDatPhong = ?', [req.params.id], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Đặt phòng xóa thành công' });
+    });
+});
+
+// ==================== INVOICES API ====================
+app.get('/api/invoices', (req, res) => {
+    const query = `
+        SELECT hd.*, kh.HoTen as TenKH, dp.MaPhong 
+        FROM HOADON hd
+        JOIN DATPHONG dp ON hd.MaDatPhong = dp.MaDatPhong
+        JOIN KHACH_HANG kh ON dp.MaKH = kh.MaKH
+        ORDER BY hd.MaHD DESC
+    `;
+    connection.query(query, (err, results) => {
+        if (err) {
+            console.error('Lỗi query invoices:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        res.json(results || []);
+    });
+});
+
+// ==================== SERVICE USAGE API ====================
+app.get('/api/usage', (req, res) => {
+    const query = `
+        SELECT sd.*, dv.TenDV, kh.HoTen as TenKH 
+        FROM SUDUNGDV sd
+        JOIN DICHVU dv ON sd.MaDV = dv.MaDV
+        JOIN DATPHONG dp ON sd.MaDatPhong = dp.MaDatPhong
+        JOIN KHACH_HANG kh ON dp.MaKH = kh.MaKH
+        ORDER BY sd.MaSD DESC
+    `;
+    connection.query(query, (err, results) => {
+        if (err) {
+            console.error('Lỗi query usage:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        res.json(results || []);
+    });
+});
+
+app.post('/api/invoices', (req, res) => {
+    const { MaDatPhong, TongTien, PhuongThucTT, TrangThai } = req.body;
+    const query = 'INSERT INTO HOADON (MaDatPhong, TongTien, PhuongThucTT, TrangThai) VALUES (?, ?, ?, ?)';
+    
+    connection.query(query, [MaDatPhong, TongTien, PhuongThucTT || 'tien_mat', TrangThai || 'chua_thanh_toan'], (err, results) => {
+        if (err) {
+            console.error('Lỗi tạo hóa đơn:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: 'Hóa đơn thêm thành công', id: results.insertId });
+    });
+});
+
+app.put('/api/invoices/:id/status', (req, res) => {
+    const { TrangThai } = req.body;
+    const query = 'UPDATE HOADON SET TrangThai=? WHERE MaHD=?';
+    
+    connection.query(query, [TrangThai, req.params.id], (err, results) => {
+        if (err) {
+            console.error('Lỗi cập nhật trạng thái hóa đơn:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: 'Trạng thái hóa đơn cập nhật thành công' });
+    });
+});
+
+app.delete('/api/invoices/:id', (req, res) => {
+    connection.query('DELETE FROM HOADON WHERE MaHD = ?', [req.params.id], (err, results) => {
+        if (err) {
+            console.error('Lỗi xóa hóa đơn:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: 'Hóa đơn xóa thành công' });
+    });
+});
+
+// ==================== PAYMENT WEBHOOK & API ====================
+// Webhook endpoint để nhận thông báo thanh toán từ dịch vụ bên thứ 3
+// Có thể tích hợp với: VietQR, VNPay, MoMo, ZaloPay, Napas, etc.
+app.post('/api/payment/webhook', (req, res) => {
+    const { invoiceId, transactionId, amount, status, provider } = req.body;
+    
+    // Xác thực webhook (nên thêm signature verification)
+    // if (!verifyWebhookSignature(req)) {
+    //     return res.status(401).json({ error: 'Invalid signature' });
+    // }
+    
+    if (status === 'success' || status === 'paid') {
+        // Cập nhật trạng thái hóa đơn
+        const query = 'UPDATE HOADON SET TrangThai=? WHERE MaHD=?';
+        connection.query(query, ['da_thanh_toan', invoiceId], (err, results) => {
+            if (err) {
+                console.error('Lỗi cập nhật trạng thái từ webhook:', err);
+                return res.status(500).json({ error: err.message });
+            }
+            console.log(`✅ Webhook: Hóa đơn ${invoiceId} đã được thanh toán qua ${provider || 'unknown'}`);
+            res.json({ message: 'Payment confirmed', invoiceId });
+        });
+    } else {
+        res.json({ message: 'Payment status received', status });
+    }
+});
+
+// API để kiểm tra trạng thái giao dịch (polling)
+app.get('/api/payment/check/:invoiceId', (req, res) => {
+    const invoiceId = req.params.invoiceId;
+    
+    // Kiểm tra trạng thái hóa đơn
+    connection.query('SELECT TrangThai FROM HOADON WHERE MaHD = ?', [invoiceId], (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Invoice not found' });
+        }
+        res.json({ 
+            invoiceId, 
+            status: results[0].TrangThai,
+            isPaid: results[0].TrangThai === 'da_thanh_toan'
+        });
+    });
+});
+
+// API để tạo QR code qua dịch vụ bên thứ 3 (VietQR, VNPay, etc.)
+app.post('/api/payment/generate-qr', async (req, res) => {
+    const { invoiceId, amount, content } = req.body;
+    
+    // TODO: Tích hợp với API dịch vụ bên thứ 3
+    // Ví dụ với VietQR API:
+    // const vietqrResponse = await fetch('https://api.vietqr.io/v2/generate', {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({
+    //         accountNo: '100878031328',
+    //         accountName: 'NORTHWEST HOTEL',
+    //         acqId: '970415', // Vietinbank
+    //         amount: amount,
+    //         addInfo: content,
+    //         format: 'text',
+    //         template: 'compact'
+    //     })
+    // });
+    // const qrData = await vietqrResponse.json();
+    
+    // Tạm thời trả về thông tin để frontend tự tạo QR
+    res.json({
+        success: true,
+        message: 'QR code data generated',
+        data: {
+            accountNo: '100878031328',
+            accountName: 'NORTHWEST HOTEL',
+            bankCode: '970415', // Vietinbank
+            amount: amount,
+            content: content
+        }
+    });
+});
+
+app.post('/api/usage', (req, res) => {
+    const { MaDatPhong, MaDV, SoLuong, NgaySuDung } = req.body;
+    
+    // Tính thành tiền từ đơn giá dịch vụ
+    connection.query('SELECT DonGia FROM DICHVU WHERE MaDV = ?', [MaDV], (err, serviceResult) => {
+        if (err) {
+            console.error('Lỗi lấy giá dịch vụ:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        
+        if (serviceResult.length === 0) {
+            return res.status(404).json({ error: 'Không tìm thấy dịch vụ' });
+        }
+        
+        const donGia = parseFloat(serviceResult[0].DonGia) || 0;
+        const thanhTien = donGia * (parseInt(SoLuong) || 1);
+        
+        const query = 'INSERT INTO SUDUNGDV (MaDatPhong, MaDV, SoLuong, NgaySuDung, ThanhTien) VALUES (?, ?, ?, ?, ?)';
+        
+        connection.query(query, [MaDatPhong, MaDV, SoLuong || 1, NgaySuDung || null, thanhTien], (err, results) => {
+            if (err) {
+                console.error('Lỗi tạo sử dụng dịch vụ:', err);
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ message: 'Sử dụng dịch vụ thêm thành công', id: results.insertId });
+        });
+    });
+});
+
+app.delete('/api/usage/:id', (req, res) => {
+    connection.query('DELETE FROM SUDUNGDV WHERE MaSD = ?', [req.params.id], (err, results) => {
+        if (err) {
+            console.error('Lỗi xóa sử dụng dịch vụ:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: 'Sử dụng dịch vụ xóa thành công' });
+    });
+});
+
+// Test route
+app.get('/api/test', (req, res) => {
+    res.json({ 
+        message: 'Backend CRUD API is working!', 
+        timestamp: new Date(),
+        endpoints: [
+            '/api/customers - GET,POST,PUT,DELETE',
+            '/api/rooms - GET,POST,PUT,DELETE', 
+            '/api/services - GET,POST,PUT,DELETE',
+            '/api/bookings - GET,POST,PUT,DELETE',
+            '/api/invoices - GET',
+            '/api/usage - GET'
+        ]
+    });
+});
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+    console.log(`🚀 CRUD Server running on port ${PORT}`);
+    console.log(`📚 API Documentation: http://localhost:${PORT}/api/test`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+});

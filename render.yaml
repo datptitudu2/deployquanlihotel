@@ -1,0 +1,37 @@
+# File này là optional - có thể dùng để deploy tự động
+# Hoặc deploy thủ công theo hướng dẫn trong DEPLOY.md
+
+services:
+  # Backend API Service
+  - type: web
+    name: hotel-management-backend
+    env: node
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DB_HOST
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_PORT
+        value: 3306
+      - key: DB_SSL
+        value: "true"
+      - key: FRONTEND_URL
+        sync: false
+
+  # Frontend Service (Static Site)
+  - type: web
+    name: hotel-management-frontend
+    env: static
+    buildCommand: echo "No build needed"
+    staticPublishPath: ./frontend
