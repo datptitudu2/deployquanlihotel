@@ -1708,7 +1708,10 @@
         }
       }
 
-      // Search inputs: live filter by text across row cells
+      // Search đã được xử lý bởi app.js - initSimpleSearch()
+      // Code cũ đã được comment để tránh conflict
+      
+      /* OLD SEARCH CODE - DISABLED
       const searchHandlers = new Map(); // Lưu handlers để có thể remove
       
       function wireSearch(idPrefix, colCount) {
@@ -1862,21 +1865,10 @@
           handlers: searchHandlers.get(idPrefix)
         });
       }
+      */
       
-      // Function để khởi tạo lại search cho một page
-      window.initPageSearch = function(page) {
-        console.log(`🔄 initPageSearch called for: ${page}`);
-        if (typeof wireSearch === 'function') {
-          wireSearch(page);
-        } else {
-          console.warn(`⚠️ wireSearch chưa được định nghĩa khi initPageSearch được gọi cho ${page}`);
-        }
-      };
-      
-      // Expose wireSearch globally để có thể test - phải expose ngay
-      window.wireSearch = wireSearch;
-      
-      console.log('✅ wireSearch và initPageSearch đã được expose lên window');
+      // Search đơn giản được xử lý bởi app.js - initSimpleSearch()
+      console.log('✅ Search sẽ được khởi tạo bởi app.js sau khi data load');
       
       // Khởi tạo search cho tất cả pages khi DOM ready
       function initAllSearch() {
@@ -2601,46 +2593,5 @@
     window.applyUserPermissions = applyUserPermissions;
   </script>
   <script src="app.js"></script>
-  <script>
-    // Đảm bảo search được khởi tạo sau khi tất cả scripts đã load
-    (function() {
-      let retryCount = 0;
-      const maxRetries = 10;
-      
-      function ensureSearchInitialized() {
-        if (window.wireSearch && typeof window.wireSearch === 'function') {
-          console.log('✅ wireSearch function đã sẵn sàng, khởi tạo lại search...');
-          // Khởi tạo lại search cho tất cả pages
-          ['customers', 'rooms', 'services', 'bookings', 'invoices', 'usage', 'users'].forEach(page => {
-            const input = document.getElementById(`search-${page}`);
-            if (input) {
-              console.log(`🔄 Khởi tạo lại search cho ${page}...`);
-              window.wireSearch(page);
-            }
-          });
-        } else {
-          retryCount++;
-          if (retryCount < maxRetries) {
-            // Chỉ log lần đầu và lần cuối để tránh spam
-            if (retryCount === 1 || retryCount === maxRetries) {
-              console.warn(`⚠️ wireSearch chưa sẵn sàng (lần thử ${retryCount}/${maxRetries}), sẽ retry...`);
-            }
-            setTimeout(ensureSearchInitialized, 300);
-          } else {
-            console.error('❌ Không thể khởi tạo search sau nhiều lần thử. Có thể có lỗi trong code.');
-          }
-        }
-      }
-      
-      // Chờ DOM và scripts load xong - delay lâu hơn để đảm bảo app.js đã load
-      if (document.readyState === 'complete') {
-        setTimeout(ensureSearchInitialized, 1000);
-      } else {
-        window.addEventListener('load', () => {
-          setTimeout(ensureSearchInitialized, 1000);
-        });
-      }
-    })();
-  </script>
 </body>
 </html>

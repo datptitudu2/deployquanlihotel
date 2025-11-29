@@ -212,15 +212,8 @@ async function displayCustomers(customers) {
 
   console.log("✅ Đã hiển thị xong", customers.length, "khách hàng");
   
-  // Khởi tạo lại search sau khi hiển thị data
-  setTimeout(() => {
-    if (window.initPageSearch) {
-      console.log('🔄 Khởi tạo lại search cho customers sau khi hiển thị data');
-      window.initPageSearch('customers');
-    } else {
-      console.warn('⚠️ window.initPageSearch không tồn tại!');
-    }
-  }, 300);
+  // Khởi tạo search đơn giản
+  initSimpleSearch('customers');
 }
 
 async function displayRooms(rooms) {
@@ -284,15 +277,8 @@ async function displayRooms(rooms) {
 
   console.log("✅ Đã hiển thị xong", rooms.length, "phòng");
   
-  // Khởi tạo lại search sau khi hiển thị data
-  setTimeout(() => {
-    if (window.initPageSearch) {
-      console.log('🔄 Khởi tạo lại search cho rooms sau khi hiển thị data');
-      window.initPageSearch('rooms');
-    } else {
-      console.warn('⚠️ window.initPageSearch không tồn tại!');
-    }
-  }, 300);
+  // Khởi tạo search đơn giản
+  initSimpleSearch('rooms');
 }
 
 async function displayServices(services) {
@@ -337,15 +323,8 @@ async function displayServices(services) {
     });
   }
   
-  // Khởi tạo lại search sau khi hiển thị data
-  setTimeout(() => {
-    if (window.initPageSearch) {
-      console.log('🔄 Khởi tạo lại search cho services sau khi hiển thị data');
-      window.initPageSearch('services');
-    } else {
-      console.warn('⚠️ window.initPageSearch không tồn tại!');
-    }
-  }, 300);
+  // Khởi tạo search đơn giản
+  initSimpleSearch('services');
 }
 
 async function displayBookings(bookings) {
@@ -399,15 +378,8 @@ async function displayBookings(bookings) {
     });
   }
   
-  // Khởi tạo lại search sau khi hiển thị data
-  setTimeout(() => {
-    if (window.initPageSearch) {
-      console.log('🔄 Khởi tạo lại search cho bookings sau khi hiển thị data');
-      window.initPageSearch('bookings');
-    } else {
-      console.warn('⚠️ window.initPageSearch không tồn tại!');
-    }
-  }, 300);
+  // Khởi tạo search đơn giản
+  initSimpleSearch('bookings');
 }
 
 async function displayInvoices(invoices) {
@@ -470,15 +442,8 @@ async function displayInvoices(invoices) {
     });
   }
   
-  // Khởi tạo lại search sau khi hiển thị data
-  setTimeout(() => {
-    if (window.initPageSearch) {
-      console.log('🔄 Khởi tạo lại search cho invoices sau khi hiển thị data');
-      window.initPageSearch('invoices');
-    } else {
-      console.warn('⚠️ window.initPageSearch không tồn tại!');
-    }
-  }, 300);
+  // Khởi tạo search đơn giản
+  initSimpleSearch('invoices');
 }
 
 async function displayUsage(usage) {
@@ -522,15 +487,8 @@ async function displayUsage(usage) {
     });
   }
   
-  // Khởi tạo lại search sau khi hiển thị data
-  setTimeout(() => {
-    if (window.initPageSearch) {
-      console.log('🔄 Khởi tạo lại search cho usage sau khi hiển thị data');
-      window.initPageSearch('usage');
-    } else {
-      console.warn('⚠️ window.initPageSearch không tồn tại!');
-    }
-  }, 300);
+  // Khởi tạo search đơn giản
+  initSimpleSearch('usage');
 }
 
 async function deleteInvoice(invoiceId) {
@@ -1192,15 +1150,8 @@ function displayUsers(users) {
     tbody.innerHTML += row;
   });
   
-  // Khởi tạo lại search sau khi hiển thị data
-  setTimeout(() => {
-    if (window.initPageSearch) {
-      console.log('🔄 Khởi tạo lại search cho users sau khi hiển thị data');
-      window.initPageSearch('users');
-    } else {
-      console.warn('⚠️ window.initPageSearch không tồn tại!');
-    }
-  }, 300);
+  // Khởi tạo search đơn giản
+  initSimpleSearch('users');
 }
 
 let editingUserId = null;
@@ -2204,3 +2155,45 @@ function filterTable(kind, mode) {
 // Make utilities global
 window.deleteRow = deleteRow;
 window.filterTable = filterTable;
+
+// ==================== SIMPLE SEARCH ====================
+function initSimpleSearch(page) {
+  const input = document.getElementById(`search-${page}`);
+  if (!input) return;
+  
+  // Remove old listener bằng cách replace input
+  const newInput = input.cloneNode(true);
+  input.parentNode.replaceChild(newInput, input);
+  
+  // Add event listener đơn giản
+  newInput.addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase().trim();
+    const table = document.getElementById(`table-${page}`);
+    if (!table) return;
+    
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return;
+    
+    const rows = tbody.querySelectorAll('tr');
+    
+    rows.forEach(row => {
+      // Bỏ qua empty state row
+      if (row.querySelector('td[colspan]')) {
+        row.style.display = searchTerm ? 'none' : '';
+        return;
+      }
+      
+      const text = Array.from(row.querySelectorAll('td'))
+        .map(td => td.textContent.toLowerCase())
+        .join(' ');
+      
+      if (text.includes(searchTerm)) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  });
+  
+  console.log(`✅ Đã khởi tạo search đơn giản cho: ${page}`);
+}
