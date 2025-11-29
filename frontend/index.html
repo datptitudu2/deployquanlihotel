@@ -1719,9 +1719,16 @@
         
         // Remove old handler nếu có
         if (searchHandlers.has(idPrefix)) {
-          const oldHandler = searchHandlers.get(idPrefix);
-          input.removeEventListener("input", oldHandler);
-          input.removeEventListener("focus", oldHandler.focusHandler);
+          const oldHandlers = searchHandlers.get(idPrefix);
+          if (oldHandlers.input) {
+            input.removeEventListener("input", oldHandlers.input);
+          }
+          if (oldHandlers.keyup) {
+            input.removeEventListener("keyup", oldHandlers.keyup);
+          }
+          if (oldHandlers.focusHandler) {
+            input.removeEventListener("focus", oldHandlers.focusHandler);
+          }
         }
         
         // Đảm bảo rows có transition style
@@ -1738,7 +1745,9 @@
         };
         
         // Handler function
-        const handleSearch = () => {
+        const handleSearch = (e) => {
+          console.log(`🔍 Search triggered for ${idPrefix}, value:`, input.value);
+          
           const tb = document.getElementById("table-" + idPrefix)?.querySelector("tbody");
           if (!tb) {
             console.warn(`⚠️ Không tìm thấy tbody cho table-${idPrefix}`);
@@ -1748,6 +1757,8 @@
           const rows = Array.from(tb.querySelectorAll("tr"));
           const q = input.value.toLowerCase().trim();
           
+          console.log(`🔍 Searching for: "${q}", found ${rows.length} rows`);
+          
           // Nếu search rỗng, hiển thị tất cả ngay
           if (!q) {
             rows.forEach((r) => {
@@ -1755,8 +1766,11 @@
               r.style.opacity = '1';
               r.style.transform = 'translateY(0) scale(1)';
             });
+            console.log(`✅ Reset: hiển thị tất cả ${rows.length} rows`);
             return;
           }
+          
+          let visibleCount = 0;
           
           // Search và filter với animation mượt
           rows.forEach((r, index) => {
@@ -1773,6 +1787,7 @@
             
             // Smooth transition với stagger effect
             if (shouldShow) {
+              visibleCount++;
               r.style.display = "";
               requestAnimationFrame(() => {
                 setTimeout(() => {
@@ -1790,19 +1805,46 @@
               }, 150);
             }
           });
+          
+          console.log(`✅ Search "${q}": hiển thị ${visibleCount}/${rows.length} rows`);
         };
         
         // Lưu handlers
         const focusHandler = initTableStyles;
         searchHandlers.set(idPrefix, { input: handleSearch, focusHandler });
         
+        // Handler cho Enter key
+        const keyupHandler = (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            handleSearch(e);
+          }
+        };
+        
         // Khởi tạo styles khi input được focus
         input.addEventListener('focus', focusHandler);
         
-        // Search handler
+        // Search handler - cả input và keyup để đảm bảo hoạt động
         input.addEventListener("input", handleSearch);
+        input.addEventListener("keyup", keyupHandler);
         
-        console.log(`✅ Đã khởi tạo search cho: ${idPrefix}`);
+        // Lưu handlers
+        searchHandlers.set(idPrefix, { 
+          input: handleSearch, 
+          keyup: keyupHandler,
+          focusHandler: focusHandler 
+        });
+        
+        // Trigger search ngay khi khởi tạo nếu có giá trị
+        if (input.value) {
+          setTimeout(() => handleSearch(), 100);
+        }
+        
+        console.log(`✅ Đã khởi tạo search cho: ${idPrefix}`, {
+          input: input,
+          hasValue: !!input.value,
+          handlers: searchHandlers.get(idPrefix)
+        });
       }
       
       // Function để khởi tạo lại search cho một page
@@ -1812,6 +1854,7 @@
       
       // Khởi tạo search cho tất cả pages khi DOM ready
       function initAllSearch() {
+        console.log('🔍 Khởi tạo search cho tất cả pages...');
         [
           "customers",
           "rooms",
@@ -1824,19 +1867,58 @@
           // Retry nếu element chưa có
           const input = document.getElementById("search-" + k);
           if (input) {
+            console.log(`✅ Tìm thấy input search-${k}, khởi tạo...`);
             wireSearch(k);
           } else {
-            // Retry sau 100ms
-            setTimeout(() => wireSearch(k), 100);
+            console.warn(`⚠️ Chưa tìm thấy input search-${k}, sẽ retry...`);
+            // Retry nhiều lần với delay tăng dần
+            let retries = 0;
+            const maxRetries = 5;
+            const retryInterval = setInterval(() => {
+              retries++;
+              const retryInput = document.getElementById("search-" + k);
+              if (retryInput) {
+                console.log(`✅ Tìm thấy input search-${k} sau ${retries} lần retry`);
+                wireSearch(k);
+                clearInterval(retryInterval);
+              } else if (retries >= maxRetries) {
+                console.warn(`❌ Không tìm thấy input search-${k} sau ${maxRetries} lần retry`);
+                clearInterval(retryInterval);
+              }
+            }, 200);
           }
         });
       }
       
       // Khởi tạo ngay nếu DOM đã ready
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initAllSearch);
+        document.addEventListener('DOMContentLoaded', () => {
+          console.log('📄 DOM Content Loaded, khởi tạo search...');
+          initAllSearch();
+        });
       } else {
+        console.log('📄 DOM đã ready, khởi tạo search ngay...');
         initAllSearch();
+      }
+      
+      // Khởi tạo lại search khi page được hiển thị (fallback)
+      const observer = new MutationObserver(() => {
+        // Khi có thay đổi trong DOM, kiểm tra lại search
+        document.querySelectorAll('[id^="search-"]').forEach(input => {
+          const idPrefix = input.id.replace('search-', '');
+          if (!searchHandlers.has(idPrefix)) {
+            console.log(`🔄 Tìm thấy search input mới: ${input.id}, khởi tạo...`);
+            wireSearch(idPrefix);
+          }
+        });
+      });
+      
+      // Observe changes to the document body
+      if (document.body) {
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
       }
 
       // Initial show home - sẽ được xử lý bởi app.js
