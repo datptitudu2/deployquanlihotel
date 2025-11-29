@@ -1825,8 +1825,23 @@
         input.addEventListener('focus', focusHandler);
         
         // Search handler - cả input và keyup để đảm bảo hoạt động
-        input.addEventListener("input", handleSearch);
-        input.addEventListener("keyup", keyupHandler);
+        // Sử dụng capture phase để đảm bảo không bị preventDefault
+        input.addEventListener("input", handleSearch, false);
+        input.addEventListener("keyup", keyupHandler, false);
+        input.addEventListener("keydown", (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            handleSearch(e);
+          }
+        }, false);
+        
+        // Test: trigger search ngay khi attach để đảm bảo hoạt động
+        console.log(`🧪 Test search cho ${idPrefix}:`, {
+          inputExists: !!input,
+          inputValue: input.value,
+          inputId: input.id,
+          hasEventListeners: true
+        });
         
         // Lưu handlers
         searchHandlers.set(idPrefix, { 
@@ -1849,8 +1864,12 @@
       
       // Function để khởi tạo lại search cho một page
       window.initPageSearch = function(page) {
+        console.log(`🔄 initPageSearch called for: ${page}`);
         wireSearch(page);
       };
+      
+      // Expose wireSearch globally để có thể test
+      window.wireSearch = wireSearch;
       
       // Khởi tạo search cho tất cả pages khi DOM ready
       function initAllSearch() {
@@ -1893,13 +1912,38 @@
       // Khởi tạo ngay nếu DOM đã ready
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
-          console.log('📄 DOM Content Loaded, khởi tạo search...');
-          initAllSearch();
+          console.log(' DOM Content Loaded, khởi tạo search...');
+          setTimeout(() => initAllSearch(), 100);
         });
       } else {
         console.log('📄 DOM đã ready, khởi tạo search ngay...');
-        initAllSearch();
+        setTimeout(() => initAllSearch(), 100);
       }
+      
+      // Fallback: Khởi tạo lại search sau khi window load hoàn toàn
+      window.addEventListener('load', () => {
+        console.log('📄 Window loaded, khởi tạo lại search...');
+        setTimeout(() => initAllSearch(), 500);
+      });
+      
+      // Expose function để test manual
+      window.testSearch = function(page) {
+        console.log(`🧪 Test search manual cho: ${page}`);
+        const input = document.getElementById(`search-${page}`);
+        if (input) {
+          console.log('✅ Input found:', input);
+          wireSearch(page);
+          // Test trigger
+          input.value = 'test';
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          setTimeout(() => {
+            input.value = '';
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+          }, 1000);
+        } else {
+          console.error('❌ Input not found:', `search-${page}`);
+        }
+      };
       
       // Khởi tạo lại search khi page được hiển thị (fallback)
       const observer = new MutationObserver(() => {
@@ -2548,5 +2592,35 @@
     window.applyUserPermissions = applyUserPermissions;
   </script>
   <script src="app.js"></script>
-  </body>
+  <script>
+    // Đảm bảo search được khởi tạo sau khi tất cả scripts đã load
+    (function() {
+      function ensureSearchInitialized() {
+        if (window.wireSearch && typeof window.wireSearch === 'function') {
+          console.log('✅ wireSearch function đã sẵn sàng, khởi tạo lại search...');
+          // Khởi tạo lại search cho tất cả pages
+          ['customers', 'rooms', 'services', 'bookings', 'invoices', 'usage', 'users'].forEach(page => {
+            const input = document.getElementById(`search-${page}`);
+            if (input) {
+              console.log(`🔄 Khởi tạo lại search cho ${page}...`);
+              window.wireSearch(page);
+            }
+          });
+        } else {
+          console.warn('⚠️ wireSearch chưa sẵn sàng, sẽ retry...');
+          setTimeout(ensureSearchInitialized, 200);
+        }
+      }
+      
+      // Chờ DOM và scripts load xong
+      if (document.readyState === 'complete') {
+        setTimeout(ensureSearchInitialized, 500);
+      } else {
+        window.addEventListener('load', () => {
+          setTimeout(ensureSearchInitialized, 500);
+        });
+      }
+    })();
+  </script>
+</body>
 </html>

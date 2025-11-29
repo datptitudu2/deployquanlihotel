@@ -214,8 +214,13 @@ async function displayCustomers(customers) {
   
   // Khởi tạo lại search sau khi hiển thị data
   setTimeout(() => {
-    if (window.initPageSearch) window.initPageSearch('customers');
-  }, 100);
+    if (window.initPageSearch) {
+      console.log('🔄 Khởi tạo lại search cho customers sau khi hiển thị data');
+      window.initPageSearch('customers');
+    } else {
+      console.warn('⚠️ window.initPageSearch không tồn tại!');
+    }
+  }, 300);
 }
 
 async function displayRooms(rooms) {
@@ -281,8 +286,13 @@ async function displayRooms(rooms) {
   
   // Khởi tạo lại search sau khi hiển thị data
   setTimeout(() => {
-    if (window.initPageSearch) window.initPageSearch('rooms');
-  }, 100);
+    if (window.initPageSearch) {
+      console.log('🔄 Khởi tạo lại search cho rooms sau khi hiển thị data');
+      window.initPageSearch('rooms');
+    } else {
+      console.warn('⚠️ window.initPageSearch không tồn tại!');
+    }
+  }, 300);
 }
 
 async function displayServices(services) {
@@ -329,8 +339,13 @@ async function displayServices(services) {
   
   // Khởi tạo lại search sau khi hiển thị data
   setTimeout(() => {
-    if (window.initPageSearch) window.initPageSearch('services');
-  }, 100);
+    if (window.initPageSearch) {
+      console.log('🔄 Khởi tạo lại search cho services sau khi hiển thị data');
+      window.initPageSearch('services');
+    } else {
+      console.warn('⚠️ window.initPageSearch không tồn tại!');
+    }
+  }, 300);
 }
 
 async function displayBookings(bookings) {
@@ -386,8 +401,13 @@ async function displayBookings(bookings) {
   
   // Khởi tạo lại search sau khi hiển thị data
   setTimeout(() => {
-    if (window.initPageSearch) window.initPageSearch('bookings');
-  }, 100);
+    if (window.initPageSearch) {
+      console.log('🔄 Khởi tạo lại search cho bookings sau khi hiển thị data');
+      window.initPageSearch('bookings');
+    } else {
+      console.warn('⚠️ window.initPageSearch không tồn tại!');
+    }
+  }, 300);
 }
 
 async function displayInvoices(invoices) {
@@ -452,8 +472,13 @@ async function displayInvoices(invoices) {
   
   // Khởi tạo lại search sau khi hiển thị data
   setTimeout(() => {
-    if (window.initPageSearch) window.initPageSearch('invoices');
-  }, 100);
+    if (window.initPageSearch) {
+      console.log('🔄 Khởi tạo lại search cho invoices sau khi hiển thị data');
+      window.initPageSearch('invoices');
+    } else {
+      console.warn('⚠️ window.initPageSearch không tồn tại!');
+    }
+  }, 300);
 }
 
 async function displayUsage(usage) {
@@ -499,8 +524,13 @@ async function displayUsage(usage) {
   
   // Khởi tạo lại search sau khi hiển thị data
   setTimeout(() => {
-    if (window.initPageSearch) window.initPageSearch('usage');
-  }, 100);
+    if (window.initPageSearch) {
+      console.log('🔄 Khởi tạo lại search cho usage sau khi hiển thị data');
+      window.initPageSearch('usage');
+    } else {
+      console.warn('⚠️ window.initPageSearch không tồn tại!');
+    }
+  }, 300);
 }
 
 async function deleteInvoice(invoiceId) {
@@ -1164,8 +1194,13 @@ function displayUsers(users) {
   
   // Khởi tạo lại search sau khi hiển thị data
   setTimeout(() => {
-    if (window.initPageSearch) window.initPageSearch('users');
-  }, 100);
+    if (window.initPageSearch) {
+      console.log('🔄 Khởi tạo lại search cho users sau khi hiển thị data');
+      window.initPageSearch('users');
+    } else {
+      console.warn('⚠️ window.initPageSearch không tồn tại!');
+    }
+  }, 300);
 }
 
 let editingUserId = null;
