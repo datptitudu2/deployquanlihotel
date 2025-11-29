@@ -1690,23 +1690,7 @@ window.showPage = function(page) {
       "NORTHWEST";
   }
   
-  // Load data when switching pages và khởi tạo search
-  const initSearchForPage = () => {
-    // Khởi tạo search sau một chút để đảm bảo DOM đã render
-    setTimeout(() => {
-      if (typeof window.initPageSearch === 'function' && page !== "home") {
-        window.initPageSearch(page);
-      } else if (page !== "home") {
-        console.warn(`⚠️ window.initPageSearch chưa sẵn sàng cho page: ${page}, sẽ retry...`);
-        // Retry sau 500ms
-        setTimeout(() => {
-          if (typeof window.initPageSearch === 'function') {
-            window.initPageSearch(page);
-          }
-        }, 500);
-      }
-    }, 200);
-  };
+  // Search sẽ được khởi tạo tự động trong display functions
   
   if (page === "customers") {
     loadCustomers().then(initSearchForPage);
