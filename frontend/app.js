@@ -182,7 +182,8 @@ async function displayCustomers(customers) {
     const row = document.createElement('tr');
     row.className = 'fade-in';
     row.style.opacity = '0';
-    row.style.transform = 'translateY(-10px)';
+    row.style.transform = 'translateY(-8px) scale(0.98)';
+    row.style.transition = 'opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
     row.innerHTML = `
       <td class="id">${customer.MaKH}</td>
       <td><strong style="color: #0f4aa6;">${customer.HoTen || "Chưa có tên"}</strong></td>
@@ -200,11 +201,13 @@ async function displayCustomers(customers) {
     `;
     tbody.appendChild(row);
     
-    // Animate in với stagger effect
-    setTimeout(() => {
-      row.style.opacity = '1';
-      row.style.transform = 'translateY(0)';
-    }, i * 20);
+    // Animate in với stagger effect - giảm delay để mượt hơn
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        row.style.opacity = '1';
+        row.style.transform = 'translateY(0)';
+      }, i * 10); // Giảm từ 20ms xuống 10ms
+    });
   }
 
   console.log("✅ Đã hiển thị xong", customers.length, "khách hàng");
@@ -241,7 +244,8 @@ async function displayRooms(rooms) {
     const row = document.createElement('tr');
     row.className = 'fade-in';
     row.style.opacity = '0';
-    row.style.transform = 'translateY(-10px)';
+    row.style.transform = 'translateY(-8px) scale(0.98)';
+    row.style.transition = 'opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
     row.innerHTML = `
       <td class="id"><strong>${room.SoPhong || room.MaPhong}</strong></td>
       <td><strong style="color: #0f4aa6;">${room.LoaiPhong || "Chưa phân loại"}</strong></td>
@@ -259,10 +263,13 @@ async function displayRooms(rooms) {
     `;
     tbody.appendChild(row);
     
-    setTimeout(() => {
-      row.style.opacity = '1';
-      row.style.transform = 'translateY(0)';
-    }, i * 20);
+    // Animate in với stagger effect - giảm delay để mượt hơn
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        row.style.opacity = '1';
+        row.style.transform = 'translateY(0)';
+      }, i * 10); // Giảm từ 20ms xuống 10ms
+    });
   }
 
   console.log("✅ Đã hiển thị xong", rooms.length, "phòng");
@@ -284,7 +291,8 @@ async function displayServices(services) {
     const row = document.createElement('tr');
     row.className = 'fade-in';
     row.style.opacity = '0';
-    row.style.transform = 'translateY(-10px)';
+    row.style.transform = 'translateY(-8px) scale(0.98)';
+    row.style.transition = 'opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
     row.innerHTML = `
       <td class="id">${service.MaDV}</td>
       <td><strong style="color: #0f4aa6;">${service.TenDV || "-"}</strong></td>
@@ -300,10 +308,13 @@ async function displayServices(services) {
     `;
     tbody.appendChild(row);
     
-    setTimeout(() => {
-      row.style.opacity = '1';
-      row.style.transform = 'translateY(0)';
-    }, i * 20);
+    // Animate in với stagger effect - giảm delay để mượt hơn
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        row.style.opacity = '1';
+        row.style.transform = 'translateY(0)';
+      }, i * 10); // Giảm từ 20ms xuống 10ms
+    });
   }
 }
 
@@ -333,7 +344,8 @@ async function displayBookings(bookings) {
     const row = document.createElement('tr');
     row.className = 'fade-in';
     row.style.opacity = '0';
-    row.style.transform = 'translateY(-10px)';
+    row.style.transform = 'translateY(-8px) scale(0.98)';
+    row.style.transition = 'opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
     row.innerHTML = `
       <td class="id"><strong>#${booking.MaDP}</strong></td>
       <td>${booking.MaKH || "-"}</td>
@@ -348,10 +360,13 @@ async function displayBookings(bookings) {
     `;
     tbody.appendChild(row);
     
-    setTimeout(() => {
-      row.style.opacity = '1';
-      row.style.transform = 'translateY(0)';
-    }, i * 20);
+    // Animate in với stagger effect - giảm delay để mượt hơn
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        row.style.opacity = '1';
+        row.style.transform = 'translateY(0)';
+      }, i * 10); // Giảm từ 20ms xuống 10ms
+    });
   }
 }
 
@@ -385,7 +400,8 @@ async function displayInvoices(invoices) {
     const row = document.createElement('tr');
     row.className = 'fade-in';
     row.style.opacity = '0';
-    row.style.transform = 'translateY(-10px)';
+    row.style.transform = 'translateY(-8px) scale(0.98)';
+    row.style.transition = 'opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
     row.innerHTML = `
       <td class="id">${invoice.MaHD}</td>
       <td>${invoice.NgayLap ? new Date(invoice.NgayLap).toLocaleDateString('vi-VN') : '-'}</td>
@@ -405,10 +421,13 @@ async function displayInvoices(invoices) {
     `;
     tbody.appendChild(row);
     
-    setTimeout(() => {
-      row.style.opacity = '1';
-      row.style.transform = 'translateY(0)';
-    }, i * 20);
+    // Animate in với stagger effect - giảm delay để mượt hơn
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        row.style.opacity = '1';
+        row.style.transform = 'translateY(0)';
+      }, i * 10); // Giảm từ 20ms xuống 10ms
+    });
   }
 }
 
@@ -428,7 +447,8 @@ async function displayUsage(usage) {
     const row = document.createElement('tr');
     row.className = 'fade-in';
     row.style.opacity = '0';
-    row.style.transform = 'translateY(-10px)';
+    row.style.transform = 'translateY(-8px) scale(0.98)';
+    row.style.transition = 'opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
     row.innerHTML = `
       <td class="id">${item.MaSD}</td>
       <td>#${item.MaDatPhong || '-'}</td>
@@ -443,10 +463,13 @@ async function displayUsage(usage) {
     `;
     tbody.appendChild(row);
     
-    setTimeout(() => {
-      row.style.opacity = '1';
-      row.style.transform = 'translateY(0)';
-    }, i * 20);
+    // Animate in với stagger effect - giảm delay để mượt hơn
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        row.style.opacity = '1';
+        row.style.transform = 'translateY(0)';
+      }, i * 10); // Giảm từ 20ms xuống 10ms
+    });
   }
 }
 

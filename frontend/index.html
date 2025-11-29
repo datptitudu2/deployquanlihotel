@@ -373,31 +373,34 @@
         vertical-align: middle;
       }
       tbody tr {
-        transition: all 0.3s ease;
+        transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                    background 0.2s ease;
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
+        will-change: opacity, transform;
       }
       tbody tr:hover {
         background: #f8f9fa;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transform: translateY(-2px) scale(1.01);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       }
       tbody tr[style*="display: none"] {
         display: none !important;
         opacity: 0;
-        transform: translateY(-10px);
+        transform: translateY(-10px) scale(0.95);
       }
       tbody tr.fade-in {
-        animation: fadeInRow 0.3s ease-in;
+        animation: fadeInRow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       }
       @keyframes fadeInRow {
         from {
           opacity: 0;
-          transform: translateY(-10px);
+          transform: translateY(-8px) scale(0.98);
         }
         to {
           opacity: 1;
-          transform: translateY(0);
+          transform: translateY(0) scale(1);
         }
       }
       tbody tr:last-child td {
@@ -1709,35 +1712,75 @@
         const input = document.getElementById("search-" + idPrefix);
         if (!input) return;
         let searchTimeout;
-        input.addEventListener("input", () => {
-          clearTimeout(searchTimeout);
-          searchTimeout = setTimeout(() => {
-            const tb = document
-              .getElementById("table-" + idPrefix)
-              ?.querySelector("tbody");
-            if (!tb) return;
-            const rows = Array.from(tb.querySelectorAll("tr"));
-            const q = input.value.toLowerCase();
-            rows.forEach((r) => {
-              const text = Array.from(r.children)
-                .map((td) => td.textContent.toLowerCase())
-                .join(" ");
-              const shouldShow = text.indexOf(q) !== -1;
-              
-              // Smooth transition
-              if (shouldShow) {
-                r.style.display = "";
-                r.style.opacity = '1';
-                r.style.transform = 'translateY(0)';
-              } else {
-                r.style.opacity = '0';
-                r.style.transform = 'translateY(-10px)';
-                setTimeout(() => {
-                  r.style.display = "none";
-                }, 300);
+        
+        // Đảm bảo rows có transition style
+        const initTableStyles = () => {
+          const tb = document.getElementById("table-" + idPrefix)?.querySelector("tbody");
+          if (tb) {
+            const rows = tb.querySelectorAll("tr");
+            rows.forEach(r => {
+              if (!r.style.transition) {
+                r.style.transition = 'opacity 0.2s ease, transform 0.2s ease, display 0.2s ease';
               }
             });
-          }, 200); // Debounce 200ms
+          }
+        };
+        
+        // Khởi tạo styles khi input được focus
+        input.addEventListener('focus', initTableStyles);
+        
+        input.addEventListener("input", () => {
+          clearTimeout(searchTimeout);
+          
+          // Search ngay lập tức, không debounce để responsive hơn
+          const tb = document.getElementById("table-" + idPrefix)?.querySelector("tbody");
+          if (!tb) return;
+          
+          const rows = Array.from(tb.querySelectorAll("tr"));
+          const q = input.value.toLowerCase().trim();
+          
+          // Nếu search rỗng, hiển thị tất cả ngay
+          if (!q) {
+            rows.forEach((r) => {
+              r.style.display = "";
+              r.style.opacity = '1';
+              r.style.transform = 'translateY(0)';
+            });
+            return;
+          }
+          
+          // Search và filter với animation mượt
+          rows.forEach((r, index) => {
+            // Bỏ qua empty state row
+            if (r.querySelector('td[colspan]')) {
+              r.style.display = q ? 'none' : '';
+              return;
+            }
+            
+            const text = Array.from(r.children)
+              .map((td) => td.textContent.toLowerCase())
+              .join(" ");
+            const shouldShow = text.includes(q);
+            
+            // Smooth transition với stagger effect
+            if (shouldShow) {
+              r.style.display = "";
+              requestAnimationFrame(() => {
+                setTimeout(() => {
+                  r.style.opacity = '1';
+                  r.style.transform = 'translateY(0)';
+                }, index * 5); // Stagger nhẹ khi hiển thị lại
+              });
+            } else {
+              r.style.opacity = '0';
+              r.style.transform = 'scale(0.95)';
+              setTimeout(() => {
+                if (r.style.opacity === '0') {
+                  r.style.display = "none";
+                }
+              }, 150);
+            }
+          });
         });
       }
 
