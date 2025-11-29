@@ -63,6 +63,9 @@ class BookingAPI {
 
 // ==================== LOADING INDICATOR ====================
 function showLoading(tableId) {
+  // Xóa loading cũ nếu có
+  hideLoading(tableId);
+  
   const table = document.getElementById(tableId);
   if (!table) return null;
   
@@ -75,6 +78,12 @@ function showLoading(tableId) {
     container.appendChild(table);
   }
   
+  // Kiểm tra xem đã có loading chưa
+  const existingLoading = document.getElementById(`loading-${tableId}`);
+  if (existingLoading) {
+    existingLoading.remove();
+  }
+  
   const overlay = document.createElement('div');
   overlay.className = 'loading-overlay';
   overlay.innerHTML = '<div class="loading-spinner"></div>';
@@ -85,12 +94,25 @@ function showLoading(tableId) {
 }
 
 function hideLoading(tableId) {
+  // Tìm và remove tất cả loading overlays cho table này
   const loading = document.getElementById(`loading-${tableId}`);
   if (loading) {
     loading.style.opacity = '0';
-    loading.style.transition = 'opacity 0.3s ease';
-    setTimeout(() => loading.remove(), 300);
+    loading.style.transition = 'opacity 0.2s ease';
+    setTimeout(() => {
+      if (loading && loading.parentNode) {
+        loading.remove();
+      }
+    }, 200);
   }
+  
+  // Force remove nếu vẫn còn sau 1 giây
+  setTimeout(() => {
+    const stillLoading = document.getElementById(`loading-${tableId}`);
+    if (stillLoading && stillLoading.parentNode) {
+      stillLoading.remove();
+    }
+  }, 1000);
 }
 
 // ==================== LOAD DATA FUNCTIONS ====================
@@ -214,11 +236,19 @@ async function displayCustomers(customers) {
   const tbody = document.querySelector("#table-customers tbody");
   if (!tbody) {
     console.error("❌ Không tìm thấy #table-customers tbody");
+    hideLoading('table-customers'); // Đảm bảo ẩn loading nếu có lỗi
     return;
   }
 
   tbody.innerHTML = "";
   console.log("✅ Đã clear tbody khách hàng");
+  
+  // Hiển thị empty state nếu không có data
+  if (!customers || customers.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-inbox" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px; display: block;"></i><p>Không có khách hàng nào</p></td></tr>';
+    hideLoading('table-customers');
+    return;
+  }
 
   // Hiển thị từng row với animation mượt mà
   for (let i = 0; i < customers.length; i++) {
@@ -252,6 +282,9 @@ async function displayCustomers(customers) {
   }
 
   console.log("✅ Đã hiển thị xong", customers.length, "khách hàng");
+  
+  // Đảm bảo ẩn loading sau khi hiển thị xong
+  setTimeout(() => hideLoading('table-customers'), 100);
 }
 
 async function displayRooms(rooms) {
@@ -259,11 +292,19 @@ async function displayRooms(rooms) {
   const tbody = document.querySelector("#table-rooms tbody");
   if (!tbody) {
     console.error("❌ Không tìm thấy #table-rooms tbody");
+    hideLoading('table-rooms'); // Đảm bảo ẩn loading nếu có lỗi
     return;
   }
 
   tbody.innerHTML = "";
   console.log("✅ Đã clear tbody phòng");
+  
+  // Hiển thị empty state nếu không có data
+  if (!rooms || rooms.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-inbox" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px; display: block;"></i><p>Không có phòng nào</p></td></tr>';
+    hideLoading('table-rooms');
+    return;
+  }
 
   for (let i = 0; i < rooms.length; i++) {
     const room = rooms[i];
@@ -304,12 +345,25 @@ async function displayRooms(rooms) {
   }
 
   console.log("✅ Đã hiển thị xong", rooms.length, "phòng");
+  
+  // Đảm bảo ẩn loading sau khi hiển thị xong
+  setTimeout(() => hideLoading('table-rooms'), 100);
 }
 
 async function displayServices(services) {
   const tbody = document.querySelector("#table-services tbody");
-  if (!tbody) return;
+  if (!tbody) {
+    hideLoading('table-services');
+    return;
+  }
   tbody.innerHTML = "";
+  
+  // Hiển thị empty state nếu không có data
+  if (!services || services.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-inbox" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px; display: block;"></i><p>Không có dịch vụ nào</p></td></tr>';
+    hideLoading('table-services');
+    return;
+  }
 
   for (let i = 0; i < services.length; i++) {
     const service = services[i];
@@ -337,12 +391,25 @@ async function displayServices(services) {
       row.style.transform = 'translateY(0)';
     }, i * 20);
   }
+  
+  // Đảm bảo ẩn loading sau khi hiển thị xong
+  setTimeout(() => hideLoading('table-services'), 100);
 }
 
 async function displayBookings(bookings) {
   const tbody = document.querySelector("#table-bookings tbody");
-  if (!tbody) return;
+  if (!tbody) {
+    hideLoading('table-bookings');
+    return;
+  }
   tbody.innerHTML = "";
+  
+  // Hiển thị empty state nếu không có data
+  if (!bookings || bookings.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-inbox" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px; display: block;"></i><p>Không có đặt phòng nào</p></td></tr>';
+    hideLoading('table-bookings');
+    return;
+  }
 
   for (let i = 0; i < bookings.length; i++) {
     const booking = bookings[i];
@@ -379,12 +446,25 @@ async function displayBookings(bookings) {
       row.style.transform = 'translateY(0)';
     }, i * 20);
   }
+  
+  // Đảm bảo ẩn loading sau khi hiển thị xong
+  setTimeout(() => hideLoading('table-bookings'), 100);
 }
 
 async function displayInvoices(invoices) {
   const tbody = document.querySelector("#table-invoices tbody");
-  if (!tbody) return;
+  if (!tbody) {
+    hideLoading('table-invoices');
+    return;
+  }
   tbody.innerHTML = "";
+  
+  // Hiển thị empty state nếu không có data
+  if (!invoices || invoices.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-inbox" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px; display: block;"></i><p>Không có hóa đơn nào</p></td></tr>';
+    hideLoading('table-invoices');
+    return;
+  }
 
   for (let i = 0; i < invoices.length; i++) {
     const invoice = invoices[i];
@@ -430,12 +510,25 @@ async function displayInvoices(invoices) {
       row.style.transform = 'translateY(0)';
     }, i * 20);
   }
+  
+  // Đảm bảo ẩn loading sau khi hiển thị xong
+  setTimeout(() => hideLoading('table-invoices'), 100);
 }
 
 async function displayUsage(usage) {
   const tbody = document.querySelector("#table-usage tbody");
-  if (!tbody) return;
+  if (!tbody) {
+    hideLoading('table-usage');
+    return;
+  }
   tbody.innerHTML = "";
+  
+  // Hiển thị empty state nếu không có data
+  if (!usage || usage.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-inbox" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px; display: block;"></i><p>Không có sử dụng dịch vụ nào</p></td></tr>';
+    hideLoading('table-usage');
+    return;
+  }
 
   for (let i = 0; i < usage.length; i++) {
     const item = usage[i];
@@ -462,6 +555,9 @@ async function displayUsage(usage) {
       row.style.transform = 'translateY(0)';
     }, i * 20);
   }
+  
+  // Đảm bảo ẩn loading sau khi hiển thị xong
+  setTimeout(() => hideLoading('table-usage'), 100);
 }
 
 async function deleteInvoice(invoiceId) {

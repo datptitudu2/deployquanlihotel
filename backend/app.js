@@ -616,12 +616,16 @@ app.get('/api/test', (req, res) => {
         message: 'Backend CRUD API is working!', 
         timestamp: new Date(),
         endpoints: [
+            '/api/auth/login - POST',
+            '/api/users - GET,POST,PUT,DELETE (Admin only)',
             '/api/customers - GET,POST,PUT,DELETE',
             '/api/rooms - GET,POST,PUT,DELETE', 
             '/api/services - GET,POST,PUT,DELETE',
             '/api/bookings - GET,POST,PUT,DELETE',
-            '/api/invoices - GET',
-            '/api/usage - GET'
+            '/api/invoices - GET,POST,PUT,DELETE',
+            '/api/usage - GET,POST,DELETE',
+            '/api/payment/generate-qr - POST',
+            '/api/payment/check/:invoiceId - GET'
         ]
     });
 });
