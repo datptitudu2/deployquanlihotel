@@ -373,10 +373,32 @@
         vertical-align: middle;
       }
       tbody tr {
-        transition: all 0.2s ease;
+        transition: all 0.3s ease;
+        opacity: 1;
+        transform: translateY(0);
       }
       tbody tr:hover {
         background: #f8f9fa;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      tbody tr[style*="display: none"] {
+        display: none !important;
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      tbody tr.fade-in {
+        animation: fadeInRow 0.3s ease-in;
+      }
+      @keyframes fadeInRow {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
       tbody tr:last-child td {
         border-bottom: none;
@@ -817,6 +839,35 @@
       }
       .loading {
         animation: pulse 1.5s ease-in-out infinite;
+      }
+      .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        backdrop-filter: blur(2px);
+      }
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid var(--blue);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .table-container {
+        position: relative;
+        min-height: 200px;
       }
 
       /* Badge/Status */
@@ -1308,9 +1359,6 @@
                     <button onclick="filterTable('bookings','active')">
                       Hoạt động
                     </button>
-                    <button onclick="filterTable('bookings','past')">
-                      Quá hạn
-                    </button>
                   </div>
                 </div>
                 <table id="table-bookings">
@@ -1409,6 +1457,7 @@
                   </div>
                   <div class="filter-buttons">
                     <button onclick="filterTable('usage','all')">Tất cả</button>
+                    <button onclick="filterTable('usage','recent')">Gần đây</button>
                   </div>
                 </div>
                 <table id="table-usage">
@@ -1658,18 +1707,36 @@
       function wireSearch(idPrefix, colCount) {
         const input = document.getElementById("search-" + idPrefix);
         if (!input) return;
+        let searchTimeout;
         input.addEventListener("input", () => {
-          const tb = document
-            .getElementById("table-" + idPrefix)
-            .querySelector("tbody");
-          const rows = Array.from(tb.querySelectorAll("tr"));
-          const q = input.value.toLowerCase();
-          rows.forEach((r) => {
-            const text = Array.from(r.children)
-              .map((td) => td.textContent.toLowerCase())
-              .join(" ");
-            r.style.display = text.indexOf(q) === -1 ? "none" : "";
-          });
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => {
+            const tb = document
+              .getElementById("table-" + idPrefix)
+              ?.querySelector("tbody");
+            if (!tb) return;
+            const rows = Array.from(tb.querySelectorAll("tr"));
+            const q = input.value.toLowerCase();
+            rows.forEach((r) => {
+              const text = Array.from(r.children)
+                .map((td) => td.textContent.toLowerCase())
+                .join(" ");
+              const shouldShow = text.indexOf(q) !== -1;
+              
+              // Smooth transition
+              if (shouldShow) {
+                r.style.display = "";
+                r.style.opacity = '1';
+                r.style.transform = 'translateY(0)';
+              } else {
+                r.style.opacity = '0';
+                r.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                  r.style.display = "none";
+                }, 300);
+              }
+            });
+          }, 200); // Debounce 200ms
         });
       }
 

@@ -61,9 +61,42 @@ class BookingAPI {
   }
 }
 
+// ==================== LOADING INDICATOR ====================
+function showLoading(tableId) {
+  const table = document.getElementById(tableId);
+  if (!table) return null;
+  
+  // Tìm container hoặc tạo mới
+  let container = table.closest('.table-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.className = 'table-container';
+    table.parentNode.insertBefore(container, table);
+    container.appendChild(table);
+  }
+  
+  const overlay = document.createElement('div');
+  overlay.className = 'loading-overlay';
+  overlay.innerHTML = '<div class="loading-spinner"></div>';
+  overlay.id = `loading-${tableId}`;
+  container.style.position = 'relative';
+  container.appendChild(overlay);
+  return overlay;
+}
+
+function hideLoading(tableId) {
+  const loading = document.getElementById(`loading-${tableId}`);
+  if (loading) {
+    loading.style.opacity = '0';
+    loading.style.transition = 'opacity 0.3s ease';
+    setTimeout(() => loading.remove(), 300);
+  }
+}
+
 // ==================== LOAD DATA FUNCTIONS ====================
 async function loadCustomers() {
   console.log("🔄 Đang tải khách hàng...");
+  const loading = showLoading('table-customers');
   try {
     const response = await fetch(`${API_BASE}/customers`);
     const customers = await response.json();
@@ -71,15 +104,18 @@ async function loadCustomers() {
     if (customers.length > 0) {
       console.log("👤 Khách hàng đầu tiên:", customers[0]);
     }
-    displayCustomers(customers);
+    await displayCustomers(customers);
   } catch (error) {
     console.error("❌ Lỗi tải khách hàng:", error);
     alert("Lỗi tải khách hàng: " + error.message);
+  } finally {
+    hideLoading('table-customers');
   }
 }
 
 async function loadRooms() {
   console.log("🔄 Đang tải phòng...");
+  const loading = showLoading('table-rooms');
   try {
     const response = await fetch(`${API_BASE}/rooms`);
     const rooms = await response.json();
@@ -87,34 +123,43 @@ async function loadRooms() {
     if (rooms.length > 0) {
       console.log("🏠 Phòng đầu tiên:", rooms[0]);
     }
-    displayRooms(rooms);
+    await displayRooms(rooms);
   } catch (error) {
     console.error("❌ Lỗi tải phòng:", error);
     alert("Lỗi tải phòng: " + error.message);
+  } finally {
+    hideLoading('table-rooms');
   }
 }
 
 async function loadServices() {
+  const loading = showLoading('table-services');
   try {
     const response = await fetch(`${API_BASE}/services`);
     const services = await response.json();
-    displayServices(services);
+    await displayServices(services);
   } catch (error) {
     console.error("Lỗi tải dịch vụ:", error);
+  } finally {
+    hideLoading('table-services');
   }
 }
 
 async function loadBookings() {
+  const loading = showLoading('table-bookings');
   try {
     const response = await fetch(`${API_BASE}/bookings`);
     const bookings = await response.json();
-    displayBookings(bookings);
+    await displayBookings(bookings);
   } catch (error) {
     console.error("Lỗi tải đặt phòng:", error);
+  } finally {
+    hideLoading('table-bookings');
   }
 }
 
 async function loadInvoices() {
+  const loading = showLoading('table-invoices');
   try {
     const response = await fetch(`${API_BASE}/invoices`);
     if (!response.ok) {
@@ -124,19 +169,22 @@ async function loadInvoices() {
     const invoices = await response.json();
     // Đảm bảo invoices là array
     if (Array.isArray(invoices)) {
-      displayInvoices(invoices);
+      await displayInvoices(invoices);
     } else {
       console.error('Response không phải array:', invoices);
-      displayInvoices([]);
+      await displayInvoices([]);
     }
   } catch (error) {
     console.error("Lỗi tải hóa đơn:", error);
     alert("Lỗi tải hóa đơn: " + error.message);
-    displayInvoices([]);
+    await displayInvoices([]);
+  } finally {
+    hideLoading('table-invoices');
   }
 }
 
 async function loadUsage() {
+  const loading = showLoading('table-usage');
   try {
     const response = await fetch(`${API_BASE}/usage`);
     if (!response.ok) {
@@ -146,20 +194,22 @@ async function loadUsage() {
     const usage = await response.json();
     // Đảm bảo usage là array
     if (Array.isArray(usage)) {
-      displayUsage(usage);
+      await displayUsage(usage);
     } else {
       console.error('Response không phải array:', usage);
-      displayUsage([]);
+      await displayUsage([]);
     }
   } catch (error) {
     console.error("Lỗi tải sử dụng dịch vụ:", error);
     alert("Lỗi tải sử dụng dịch vụ: " + error.message);
-    displayUsage([]);
+    await displayUsage([]);
+  } finally {
+    hideLoading('table-usage');
   }
 }
 
 // ==================== DISPLAY FUNCTIONS ====================
-function displayCustomers(customers) {
+async function displayCustomers(customers) {
   console.log("🎨 Bắt đầu hiển thị khách hàng...");
   const tbody = document.querySelector("#table-customers tbody");
   if (!tbody) {
@@ -170,35 +220,41 @@ function displayCustomers(customers) {
   tbody.innerHTML = "";
   console.log("✅ Đã clear tbody khách hàng");
 
-  customers.forEach((customer) => {
-    const row = `
-            <tr>
-                <td class="id">${customer.MaKH}</td>
-                <td><strong style="color: #0f4aa6;">${
-                  customer.HoTen || "Chưa có tên"
-                }</strong></td>
-                <td>${customer.Email || "-"}</td>
-                <td>${customer.SoDienThoai || "-"}</td>
-                <td>${customer.DiaChi || "-"}</td>
-                <td class="actions">
-                    <button class="btn small primary" onclick="editCustomer(${customer.MaKH})" style="margin-right: 6px;">
-                      <i class="fas fa-edit"></i> Sửa
-                    </button>
-                    <button class="btn small danger" onclick="deleteCustomer('${
-                      customer.MaKH
-                    }')">
-                      <i class="fas fa-trash"></i> Xóa
-                    </button>
-                </td>
-            </tr>
-        `;
-    tbody.innerHTML += row;
-  });
+  // Hiển thị từng row với animation mượt mà
+  for (let i = 0; i < customers.length; i++) {
+    const customer = customers[i];
+    const row = document.createElement('tr');
+    row.className = 'fade-in';
+    row.style.opacity = '0';
+    row.style.transform = 'translateY(-10px)';
+    row.innerHTML = `
+      <td class="id">${customer.MaKH}</td>
+      <td><strong style="color: #0f4aa6;">${customer.HoTen || "Chưa có tên"}</strong></td>
+      <td>${customer.Email || "-"}</td>
+      <td>${customer.SoDienThoai || "-"}</td>
+      <td>${customer.DiaChi || "-"}</td>
+      <td class="actions">
+        <button class="btn small primary" onclick="editCustomer(${customer.MaKH})" style="margin-right: 6px;">
+          <i class="fas fa-edit"></i> Sửa
+        </button>
+        <button class="btn small danger" onclick="deleteCustomer('${customer.MaKH}')">
+          <i class="fas fa-trash"></i> Xóa
+        </button>
+      </td>
+    `;
+    tbody.appendChild(row);
+    
+    // Animate in với stagger effect
+    setTimeout(() => {
+      row.style.opacity = '1';
+      row.style.transform = 'translateY(0)';
+    }, i * 20);
+  }
 
   console.log("✅ Đã hiển thị xong", customers.length, "khách hàng");
 }
 
-function displayRooms(rooms) {
+async function displayRooms(rooms) {
   console.log("🎨 Bắt đầu hiển thị phòng...");
   const tbody = document.querySelector("#table-rooms tbody");
   if (!tbody) {
@@ -209,7 +265,8 @@ function displayRooms(rooms) {
   tbody.innerHTML = "";
   console.log("✅ Đã clear tbody phòng");
 
-  rooms.forEach((room) => {
+  for (let i = 0; i < rooms.length; i++) {
+    const room = rooms[i];
     const statusColor = {
       'Trống': '#28a745',
       'Đã đặt': '#ffc107',
@@ -219,70 +276,76 @@ function displayRooms(rooms) {
     const status = room.TrangThai || room.TinhTrang || 'Trống';
     const color = statusColor[status] || '#6c757d';
     
-    const row = `
-            <tr>
-                <td class="id"><strong>${room.SoPhong || room.MaPhong}</strong></td>
-                <td><strong style="color: #0f4aa6;">${
-                  room.LoaiPhong || "Chưa phân loại"
-                }</strong></td>
-                <td>${room.SoNguoiToiDa || "-"} người</td>
-                <td><span style="color: ${color}; font-weight: bold;">${status}</span></td>
-                <td style="color: #28a745; font-weight: bold;">${
-                  room.GiaPhong ? room.GiaPhong.toLocaleString('vi-VN') + " đ" : "-"
-                }</td>
-                <td class="actions">
-                    <button class="btn small primary" onclick="editRoom(${room.MaPhong})" style="margin-right: 6px;">
-                      <i class="fas fa-edit"></i> Sửa
-                    </button>
-                    <button class="btn small danger" onclick="deleteRoom('${
-                      room.MaPhong
-                    }')">
-                      <i class="fas fa-trash"></i> Xóa
-                    </button>
-                </td>
-            </tr>
-        `;
-    tbody.innerHTML += row;
-  });
+    const row = document.createElement('tr');
+    row.className = 'fade-in';
+    row.style.opacity = '0';
+    row.style.transform = 'translateY(-10px)';
+    row.innerHTML = `
+      <td class="id"><strong>${room.SoPhong || room.MaPhong}</strong></td>
+      <td><strong style="color: #0f4aa6;">${room.LoaiPhong || "Chưa phân loại"}</strong></td>
+      <td>${room.SoNguoiToiDa || "-"} người</td>
+      <td><span style="color: ${color}; font-weight: bold;">${status}</span></td>
+      <td style="color: #28a745; font-weight: bold;">${room.GiaPhong ? room.GiaPhong.toLocaleString('vi-VN') + " đ" : "-"}</td>
+      <td class="actions">
+        <button class="btn small primary" onclick="editRoom(${room.MaPhong})" style="margin-right: 6px;">
+          <i class="fas fa-edit"></i> Sửa
+        </button>
+        <button class="btn small danger" onclick="deleteRoom('${room.MaPhong}')">
+          <i class="fas fa-trash"></i> Xóa
+        </button>
+      </td>
+    `;
+    tbody.appendChild(row);
+    
+    setTimeout(() => {
+      row.style.opacity = '1';
+      row.style.transform = 'translateY(0)';
+    }, i * 20);
+  }
 
   console.log("✅ Đã hiển thị xong", rooms.length, "phòng");
 }
 
-function displayServices(services) {
+async function displayServices(services) {
   const tbody = document.querySelector("#table-services tbody");
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  services.forEach((service) => {
-    const row = `
-            <tr>
-                <td class="id">${service.MaDV}</td>
-                <td><strong style="color: #0f4aa6;">${service.TenDV || "-"}</strong></td>
-                <td style="color: #28a745; font-weight: bold;">${
-                  service.DonGia ? service.DonGia.toLocaleString('vi-VN') + " đ" : "Miễn phí"
-                }</td>
-                <td class="actions">
-                    <button class="btn small primary" onclick="editService(${service.MaDV})" style="margin-right: 6px;">
-                      <i class="fas fa-edit"></i> Sửa
-                    </button>
-                    <button class="btn small danger" onclick="deleteService('${
-                      service.MaDV
-                    }')">
-                      <i class="fas fa-trash"></i> Xóa
-                    </button>
-                </td>
-            </tr>
-        `;
-    tbody.innerHTML += row;
-  });
+  for (let i = 0; i < services.length; i++) {
+    const service = services[i];
+    const row = document.createElement('tr');
+    row.className = 'fade-in';
+    row.style.opacity = '0';
+    row.style.transform = 'translateY(-10px)';
+    row.innerHTML = `
+      <td class="id">${service.MaDV}</td>
+      <td><strong style="color: #0f4aa6;">${service.TenDV || "-"}</strong></td>
+      <td style="color: #28a745; font-weight: bold;">${service.DonGia ? service.DonGia.toLocaleString('vi-VN') + " đ" : "Miễn phí"}</td>
+      <td class="actions">
+        <button class="btn small primary" onclick="editService(${service.MaDV})" style="margin-right: 6px;">
+          <i class="fas fa-edit"></i> Sửa
+        </button>
+        <button class="btn small danger" onclick="deleteService('${service.MaDV}')">
+          <i class="fas fa-trash"></i> Xóa
+        </button>
+      </td>
+    `;
+    tbody.appendChild(row);
+    
+    setTimeout(() => {
+      row.style.opacity = '1';
+      row.style.transform = 'translateY(0)';
+    }, i * 20);
+  }
 }
 
-function displayBookings(bookings) {
+async function displayBookings(bookings) {
   const tbody = document.querySelector("#table-bookings tbody");
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  bookings.forEach((booking) => {
+  for (let i = 0; i < bookings.length; i++) {
+    const booking = bookings[i];
     const statusColor = {
       'Chờ xác nhận': '#ffc107',
       'Đã xác nhận': '#17a2b8',
@@ -293,32 +356,38 @@ function displayBookings(bookings) {
     const status = booking.TrangThaiText || booking.TrangThai || 'Chờ xác nhận';
     const color = statusColor[status] || '#6c757d';
     
-    const row = `
-            <tr>
-                <td class="id"><strong>#${booking.MaDP}</strong></td>
-                <td>${booking.MaKH || "-"}</td>
-                <td><strong style="color: #0f4aa6;">${booking.TenKH || "-"}</strong></td>
-                <td><strong>${booking.MaPhong || "-"}</strong> <small style="color: #6c757d;">(${booking.LoaiPhong || ""})</small></td>
-                <td>${booking.NgayNhan ? new Date(booking.NgayNhan).toLocaleDateString('vi-VN') : "-"}</td>
-                <td>${booking.NgayTra ? new Date(booking.NgayTra).toLocaleDateString('vi-VN') : "-"}</td>
-                <td><span style="color: ${color}; font-weight: bold;">${status}</span></td>
-                <td class="actions">
-                    <button class="btn small danger" onclick="deleteBooking('${
-                      booking.MaDP
-                    }')">Xóa</button>
-                </td>
-            </tr>
-        `;
-    tbody.innerHTML += row;
-  });
+    const row = document.createElement('tr');
+    row.className = 'fade-in';
+    row.style.opacity = '0';
+    row.style.transform = 'translateY(-10px)';
+    row.innerHTML = `
+      <td class="id"><strong>#${booking.MaDP}</strong></td>
+      <td>${booking.MaKH || "-"}</td>
+      <td><strong style="color: #0f4aa6;">${booking.TenKH || "-"}</strong></td>
+      <td><strong>${booking.MaPhong || "-"}</strong> <small style="color: #6c757d;">(${booking.LoaiPhong || ""})</small></td>
+      <td>${booking.NgayNhan ? new Date(booking.NgayNhan).toLocaleDateString('vi-VN') : "-"}</td>
+      <td>${booking.NgayTra ? new Date(booking.NgayTra).toLocaleDateString('vi-VN') : "-"}</td>
+      <td><span style="color: ${color}; font-weight: bold;">${status}</span></td>
+      <td class="actions">
+        <button class="btn small danger" onclick="deleteBooking('${booking.MaDP}')">Xóa</button>
+      </td>
+    `;
+    tbody.appendChild(row);
+    
+    setTimeout(() => {
+      row.style.opacity = '1';
+      row.style.transform = 'translateY(0)';
+    }, i * 20);
+  }
 }
 
-function displayInvoices(invoices) {
+async function displayInvoices(invoices) {
   const tbody = document.querySelector("#table-invoices tbody");
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  invoices.forEach((invoice) => {
+  for (let i = 0; i < invoices.length; i++) {
+    const invoice = invoices[i];
     const phuongThucText = {
       'tien_mat': 'Tiền mặt',
       'chuyen_khoan': 'Chuyển khoản',
@@ -333,51 +402,66 @@ function displayInvoices(invoices) {
       'da_thanh_toan': '#28a745'
     };
     
-    const row = `
-      <tr>
-        <td class="id">${invoice.MaHD}</td>
-        <td>${invoice.NgayLap ? new Date(invoice.NgayLap).toLocaleDateString('vi-VN') : '-'}</td>
-        <td style="color: #28a745; font-weight: bold;">${invoice.TongTien ? invoice.TongTien.toLocaleString('vi-VN') + ' đ' : '0 đ'}</td>
-        <td>${phuongThucText[invoice.PhuongThucTT] || invoice.PhuongThucTT}</td>
-        <td><span style="color: ${trangThaiColor[invoice.TrangThai] || '#666'}; font-weight: bold;">${trangThaiText[invoice.TrangThai] || invoice.TrangThai}</span></td>
-        <td class="actions" style="white-space: nowrap;">
-          ${invoice.TrangThai === 'chua_thanh_toan' ? `
-            <button class="btn small primary" onclick="showQRPayment(${invoice.MaHD}, ${invoice.TongTien || 0}, '${invoice.MaHD}')" style="margin-right: 6px;">
-              <i class="fas fa-qrcode"></i> QR
-            </button>
-          ` : ''}
-          <button class="btn small danger" onclick="deleteInvoice('${invoice.MaHD}')">
-            <i class="fas fa-trash"></i> Xóa
+    const row = document.createElement('tr');
+    row.className = 'fade-in';
+    row.style.opacity = '0';
+    row.style.transform = 'translateY(-10px)';
+    row.innerHTML = `
+      <td class="id">${invoice.MaHD}</td>
+      <td>${invoice.NgayLap ? new Date(invoice.NgayLap).toLocaleDateString('vi-VN') : '-'}</td>
+      <td style="color: #28a745; font-weight: bold;">${invoice.TongTien ? invoice.TongTien.toLocaleString('vi-VN') + ' đ' : '0 đ'}</td>
+      <td>${phuongThucText[invoice.PhuongThucTT] || invoice.PhuongThucTT}</td>
+      <td><span style="color: ${trangThaiColor[invoice.TrangThai] || '#666'}; font-weight: bold;">${trangThaiText[invoice.TrangThai] || invoice.TrangThai}</span></td>
+      <td class="actions" style="white-space: nowrap;">
+        ${invoice.TrangThai === 'chua_thanh_toan' ? `
+          <button class="btn small primary" onclick="showQRPayment(${invoice.MaHD}, ${invoice.TongTien || 0}, '${invoice.MaHD}')" style="margin-right: 6px;">
+            <i class="fas fa-qrcode"></i> QR
           </button>
-        </td>
-      </tr>
+        ` : ''}
+        <button class="btn small danger" onclick="deleteInvoice('${invoice.MaHD}')">
+          <i class="fas fa-trash"></i> Xóa
+        </button>
+      </td>
     `;
-    tbody.innerHTML += row;
-  });
+    tbody.appendChild(row);
+    
+    setTimeout(() => {
+      row.style.opacity = '1';
+      row.style.transform = 'translateY(0)';
+    }, i * 20);
+  }
 }
 
-function displayUsage(usage) {
+async function displayUsage(usage) {
   const tbody = document.querySelector("#table-usage tbody");
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  usage.forEach((item) => {
-    const row = `
-      <tr>
-        <td class="id">${item.MaSD}</td>
-        <td>#${item.MaDatPhong || '-'}</td>
-        <td><strong style="color: #0f4aa6;">${item.TenDV || '-'}</strong></td>
-        <td>${item.SoLuong || 1}</td>
-        <td style="color: #28a745; font-weight: bold;">${item.ThanhTien ? item.ThanhTien.toLocaleString('vi-VN') + ' đ' : '0 đ'}</td>
-        <td class="actions">
-          <button class="btn small danger" onclick="deleteUsage('${item.MaSD}')">
-            <i class="fas fa-trash"></i> Xóa
-          </button>
-        </td>
-      </tr>
+  for (let i = 0; i < usage.length; i++) {
+    const item = usage[i];
+    const row = document.createElement('tr');
+    row.className = 'fade-in';
+    row.style.opacity = '0';
+    row.style.transform = 'translateY(-10px)';
+    row.innerHTML = `
+      <td class="id">${item.MaSD}</td>
+      <td>#${item.MaDatPhong || '-'}</td>
+      <td><strong style="color: #0f4aa6;">${item.TenDV || '-'}</strong></td>
+      <td>${item.SoLuong || 1}</td>
+      <td style="color: #28a745; font-weight: bold;">${item.ThanhTien ? item.ThanhTien.toLocaleString('vi-VN') + ' đ' : '0 đ'}</td>
+      <td class="actions">
+        <button class="btn small danger" onclick="deleteUsage('${item.MaSD}')">
+          <i class="fas fa-trash"></i> Xóa
+        </button>
+      </td>
     `;
-    tbody.innerHTML += row;
-  });
+    tbody.appendChild(row);
+    
+    setTimeout(() => {
+      row.style.opacity = '1';
+      row.style.transform = 'translateY(0)';
+    }, i * 20);
+  }
 }
 
 async function deleteInvoice(invoiceId) {
@@ -1841,9 +1925,136 @@ function filterTable(kind, mode) {
   const tb = document.getElementById('table-' + kind)?.querySelector('tbody');
   if (!tb) return;
   const rows = Array.from(tb.querySelectorAll('tr'));
-  rows.forEach((r) => (r.style.display = ''));
-  if (mode === 'all') return;
-  // Add more filtering logic as needed
+  
+  // Update active button
+  const filterButtons = document.querySelectorAll(`#page-${kind} .filter-buttons button`);
+  filterButtons.forEach(btn => {
+    if (btn.textContent.includes(mode === 'all' ? 'Tất cả' : 
+                                 mode === 'cheap' ? '< 500k' :
+                                 mode === 'exp' ? '>= 500k' :
+                                 mode === 'empty' ? 'Trống' :
+                                 mode === 'booked' ? 'Đã đặt' :
+                                 mode === 'active' ? 'Hoạt động' :
+                                 mode === 'recent' ? 'Gần đây' : '')) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+  
+  // Smooth transition
+  rows.forEach((r) => {
+    r.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    r.style.display = '';
+  });
+  
+  if (mode === 'all') {
+    rows.forEach((r) => {
+      r.style.opacity = '1';
+      r.style.transform = 'translateY(0)';
+    });
+    return;
+  }
+  
+  // Filter logic
+  if (kind === 'services') {
+    rows.forEach((r) => {
+      const priceCell = r.cells[2]; // Đơn giá column
+      if (!priceCell) return;
+      const priceText = priceCell.textContent.trim().replace(/[^\d]/g, '');
+      const price = parseInt(priceText) || 0;
+      
+      let shouldShow = false;
+      if (mode === 'cheap') {
+        shouldShow = price < 500000;
+      } else if (mode === 'exp') {
+        shouldShow = price >= 500000;
+      }
+      
+      if (shouldShow) {
+        r.style.display = '';
+        r.style.opacity = '1';
+        r.style.transform = 'translateY(0)';
+        r.classList.add('fade-in');
+      } else {
+        r.style.display = 'none';
+        r.style.opacity = '0';
+        r.style.transform = 'translateY(-10px)';
+      }
+    });
+  } else if (kind === 'rooms') {
+    rows.forEach((r) => {
+      const statusCell = r.cells[3]; // Trạng thái column
+      if (!statusCell) return;
+      const statusText = statusCell.textContent.trim().toLowerCase();
+      
+      let shouldShow = false;
+      if (mode === 'empty') {
+        shouldShow = statusText.includes('trống') || statusText === 'trống';
+      } else if (mode === 'booked') {
+        shouldShow = statusText.includes('đã đặt') || statusText === 'đã đặt';
+      }
+      
+      if (shouldShow) {
+        r.style.display = '';
+        r.style.opacity = '1';
+        r.style.transform = 'translateY(0)';
+        r.classList.add('fade-in');
+      } else {
+        r.style.display = 'none';
+        r.style.opacity = '0';
+        r.style.transform = 'translateY(-10px)';
+      }
+    });
+  } else if (kind === 'bookings') {
+    rows.forEach((r) => {
+      const statusCell = r.cells[6]; // Trạng thái column
+      if (!statusCell) return;
+      const statusText = statusCell.textContent.trim().toLowerCase();
+      
+      let shouldShow = false;
+      if (mode === 'active') {
+        shouldShow = statusText.includes('đã xác nhận') || 
+                     statusText.includes('đã check-in') ||
+                     statusText.includes('chờ xác nhận');
+      }
+      
+      if (shouldShow) {
+        r.style.display = '';
+        r.style.opacity = '1';
+        r.style.transform = 'translateY(0)';
+        r.classList.add('fade-in');
+      } else {
+        r.style.display = 'none';
+        r.style.opacity = '0';
+        r.style.transform = 'translateY(-10px)';
+      }
+    });
+  } else if (kind === 'usage') {
+    rows.forEach((r) => {
+      if (mode === 'recent') {
+        const dateCell = r.cells[4]; // Ngày sử dụng column
+        if (!dateCell) return;
+        const dateText = dateCell.textContent.trim();
+        const usageDate = new Date(dateText);
+        const now = new Date();
+        const daysDiff = Math.floor((now - usageDate) / (1000 * 60 * 60 * 24));
+        
+        const shouldShow = daysDiff <= 30; // Gần đây = trong 30 ngày
+        
+        if (shouldShow) {
+          r.style.display = '';
+          r.style.opacity = '1';
+          r.style.transform = 'translateY(0)';
+          r.classList.add('fade-in');
+        } else {
+          r.style.display = 'none';
+          r.style.opacity = '0';
+          r.style.transform = 'translateY(-10px)';
+        }
+      }
+    });
+  }
 }
 
 // Make utilities global
