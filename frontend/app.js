@@ -61,64 +61,9 @@ class BookingAPI {
   }
 }
 
-// ==================== LOADING INDICATOR ====================
-function showLoading(tableId) {
-  // Xóa loading cũ nếu có
-  hideLoading(tableId);
-  
-  const table = document.getElementById(tableId);
-  if (!table) return null;
-  
-  // Tìm container hoặc tạo mới
-  let container = table.closest('.table-container');
-  if (!container) {
-    container = document.createElement('div');
-    container.className = 'table-container';
-    table.parentNode.insertBefore(container, table);
-    container.appendChild(table);
-  }
-  
-  // Kiểm tra xem đã có loading chưa
-  const existingLoading = document.getElementById(`loading-${tableId}`);
-  if (existingLoading) {
-    existingLoading.remove();
-  }
-  
-  const overlay = document.createElement('div');
-  overlay.className = 'loading-overlay';
-  overlay.innerHTML = '<div class="loading-spinner"></div>';
-  overlay.id = `loading-${tableId}`;
-  container.style.position = 'relative';
-  container.appendChild(overlay);
-  return overlay;
-}
-
-function hideLoading(tableId) {
-  // Tìm và remove tất cả loading overlays cho table này
-  const loading = document.getElementById(`loading-${tableId}`);
-  if (loading) {
-    loading.style.opacity = '0';
-    loading.style.transition = 'opacity 0.2s ease';
-    setTimeout(() => {
-      if (loading && loading.parentNode) {
-        loading.remove();
-      }
-    }, 200);
-  }
-  
-  // Force remove nếu vẫn còn sau 1 giây
-  setTimeout(() => {
-    const stillLoading = document.getElementById(`loading-${tableId}`);
-    if (stillLoading && stillLoading.parentNode) {
-      stillLoading.remove();
-    }
-  }, 1000);
-}
-
 // ==================== LOAD DATA FUNCTIONS ====================
 async function loadCustomers() {
   console.log("🔄 Đang tải khách hàng...");
-  const loading = showLoading('table-customers');
   try {
     const response = await fetch(`${API_BASE}/customers`);
     const customers = await response.json();
@@ -130,14 +75,11 @@ async function loadCustomers() {
   } catch (error) {
     console.error("❌ Lỗi tải khách hàng:", error);
     alert("Lỗi tải khách hàng: " + error.message);
-  } finally {
-    hideLoading('table-customers');
   }
 }
 
 async function loadRooms() {
   console.log("🔄 Đang tải phòng...");
-  const loading = showLoading('table-rooms');
   try {
     const response = await fetch(`${API_BASE}/rooms`);
     const rooms = await response.json();
@@ -149,39 +91,30 @@ async function loadRooms() {
   } catch (error) {
     console.error("❌ Lỗi tải phòng:", error);
     alert("Lỗi tải phòng: " + error.message);
-  } finally {
-    hideLoading('table-rooms');
   }
 }
 
 async function loadServices() {
-  const loading = showLoading('table-services');
   try {
     const response = await fetch(`${API_BASE}/services`);
     const services = await response.json();
     await displayServices(services);
   } catch (error) {
     console.error("Lỗi tải dịch vụ:", error);
-  } finally {
-    hideLoading('table-services');
   }
 }
 
 async function loadBookings() {
-  const loading = showLoading('table-bookings');
   try {
     const response = await fetch(`${API_BASE}/bookings`);
     const bookings = await response.json();
     await displayBookings(bookings);
   } catch (error) {
     console.error("Lỗi tải đặt phòng:", error);
-  } finally {
-    hideLoading('table-bookings');
   }
 }
 
 async function loadInvoices() {
-  const loading = showLoading('table-invoices');
   try {
     const response = await fetch(`${API_BASE}/invoices`);
     if (!response.ok) {
@@ -200,13 +133,10 @@ async function loadInvoices() {
     console.error("Lỗi tải hóa đơn:", error);
     alert("Lỗi tải hóa đơn: " + error.message);
     await displayInvoices([]);
-  } finally {
-    hideLoading('table-invoices');
   }
 }
 
 async function loadUsage() {
-  const loading = showLoading('table-usage');
   try {
     const response = await fetch(`${API_BASE}/usage`);
     if (!response.ok) {
@@ -225,8 +155,6 @@ async function loadUsage() {
     console.error("Lỗi tải sử dụng dịch vụ:", error);
     alert("Lỗi tải sử dụng dịch vụ: " + error.message);
     await displayUsage([]);
-  } finally {
-    hideLoading('table-usage');
   }
 }
 
@@ -236,7 +164,6 @@ async function displayCustomers(customers) {
   const tbody = document.querySelector("#table-customers tbody");
   if (!tbody) {
     console.error("❌ Không tìm thấy #table-customers tbody");
-    hideLoading('table-customers'); // Đảm bảo ẩn loading nếu có lỗi
     return;
   }
 
@@ -246,7 +173,6 @@ async function displayCustomers(customers) {
   // Hiển thị empty state nếu không có data
   if (!customers || customers.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-inbox" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px; display: block;"></i><p>Không có khách hàng nào</p></td></tr>';
-    hideLoading('table-customers');
     return;
   }
 
@@ -282,9 +208,6 @@ async function displayCustomers(customers) {
   }
 
   console.log("✅ Đã hiển thị xong", customers.length, "khách hàng");
-  
-  // Đảm bảo ẩn loading sau khi hiển thị xong
-  setTimeout(() => hideLoading('table-customers'), 100);
 }
 
 async function displayRooms(rooms) {
@@ -292,7 +215,6 @@ async function displayRooms(rooms) {
   const tbody = document.querySelector("#table-rooms tbody");
   if (!tbody) {
     console.error("❌ Không tìm thấy #table-rooms tbody");
-    hideLoading('table-rooms'); // Đảm bảo ẩn loading nếu có lỗi
     return;
   }
 
@@ -302,7 +224,6 @@ async function displayRooms(rooms) {
   // Hiển thị empty state nếu không có data
   if (!rooms || rooms.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-inbox" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px; display: block;"></i><p>Không có phòng nào</p></td></tr>';
-    hideLoading('table-rooms');
     return;
   }
 
@@ -345,23 +266,16 @@ async function displayRooms(rooms) {
   }
 
   console.log("✅ Đã hiển thị xong", rooms.length, "phòng");
-  
-  // Đảm bảo ẩn loading sau khi hiển thị xong
-  setTimeout(() => hideLoading('table-rooms'), 100);
 }
 
 async function displayServices(services) {
   const tbody = document.querySelector("#table-services tbody");
-  if (!tbody) {
-    hideLoading('table-services');
-    return;
-  }
+  if (!tbody) return;
   tbody.innerHTML = "";
   
   // Hiển thị empty state nếu không có data
   if (!services || services.length === 0) {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-inbox" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px; display: block;"></i><p>Không có dịch vụ nào</p></td></tr>';
-    hideLoading('table-services');
     return;
   }
 
@@ -391,23 +305,16 @@ async function displayServices(services) {
       row.style.transform = 'translateY(0)';
     }, i * 20);
   }
-  
-  // Đảm bảo ẩn loading sau khi hiển thị xong
-  setTimeout(() => hideLoading('table-services'), 100);
 }
 
 async function displayBookings(bookings) {
   const tbody = document.querySelector("#table-bookings tbody");
-  if (!tbody) {
-    hideLoading('table-bookings');
-    return;
-  }
+  if (!tbody) return;
   tbody.innerHTML = "";
   
   // Hiển thị empty state nếu không có data
   if (!bookings || bookings.length === 0) {
     tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-inbox" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px; display: block;"></i><p>Không có đặt phòng nào</p></td></tr>';
-    hideLoading('table-bookings');
     return;
   }
 
@@ -446,23 +353,16 @@ async function displayBookings(bookings) {
       row.style.transform = 'translateY(0)';
     }, i * 20);
   }
-  
-  // Đảm bảo ẩn loading sau khi hiển thị xong
-  setTimeout(() => hideLoading('table-bookings'), 100);
 }
 
 async function displayInvoices(invoices) {
   const tbody = document.querySelector("#table-invoices tbody");
-  if (!tbody) {
-    hideLoading('table-invoices');
-    return;
-  }
+  if (!tbody) return;
   tbody.innerHTML = "";
   
   // Hiển thị empty state nếu không có data
   if (!invoices || invoices.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-inbox" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px; display: block;"></i><p>Không có hóa đơn nào</p></td></tr>';
-    hideLoading('table-invoices');
     return;
   }
 
@@ -510,23 +410,16 @@ async function displayInvoices(invoices) {
       row.style.transform = 'translateY(0)';
     }, i * 20);
   }
-  
-  // Đảm bảo ẩn loading sau khi hiển thị xong
-  setTimeout(() => hideLoading('table-invoices'), 100);
 }
 
 async function displayUsage(usage) {
   const tbody = document.querySelector("#table-usage tbody");
-  if (!tbody) {
-    hideLoading('table-usage');
-    return;
-  }
+  if (!tbody) return;
   tbody.innerHTML = "";
   
   // Hiển thị empty state nếu không có data
   if (!usage || usage.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-inbox" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px; display: block;"></i><p>Không có sử dụng dịch vụ nào</p></td></tr>';
-    hideLoading('table-usage');
     return;
   }
 
@@ -555,9 +448,6 @@ async function displayUsage(usage) {
       row.style.transform = 'translateY(0)';
     }, i * 20);
   }
-  
-  // Đảm bảo ẩn loading sau khi hiển thị xong
-  setTimeout(() => hideLoading('table-usage'), 100);
 }
 
 async function deleteInvoice(invoiceId) {
