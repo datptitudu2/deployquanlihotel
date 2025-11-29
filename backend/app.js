@@ -15,23 +15,54 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Database connection
-const connection = mysql.createConnection({
+// Database connection - Sử dụng connection pool để tránh lỗi "connection in closed state"
+const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '123456',
     database: process.env.DB_NAME || 'hotel_management',
     port: process.env.DB_PORT || 3306,
-    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    reconnect: true
 });
 
-connection.connect((err) => {
+// Test connection
+pool.getConnection((err, connection) => {
     if (err) {
         console.error('❌ Database connection failed: ' + err.stack);
         return;
     }
-        console.log('✅ Connected to hotel_management database');
+    console.log('✅ Connected to hotel_management database');
+    connection.release();
 });
+
+// Helper function để query với pool
+function query(sql, params) {
+    return new Promise((resolve, reject) => {
+        pool.query(sql, params, (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(results);
+            }
+        });
+    });
+}
+
+// Giữ lại connection cũ để tương thích (sẽ dùng pool thay thế)
+const connection = {
+    query: (sql, params, callback) => {
+        if (typeof params === 'function') {
+            callback = params;
+            params = [];
+        }
+        pool.query(sql, params, callback);
+    },
+    state: 'authenticated' // Giả lập state
+};
 
 // ==================== AUTHENTICATION API ====================
 app.post('/api/auth/login', (req, res) => {

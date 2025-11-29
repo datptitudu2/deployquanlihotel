@@ -1381,19 +1381,48 @@ async function loadDashboardStats() {
       fetch(`${API_BASE}/invoices`)
     ]);
     
-    const rooms = await roomsRes.json();
-    const customers = await customersRes.json();
-    const bookings = await bookingsRes.json();
-    const invoices = await invoicesRes.json();
+    // Parse JSON - chỉ gọi json() 1 lần
+    let rooms = [], customers = [], bookings = [];
+    
+    try {
+      const roomsData = await roomsRes.json();
+      rooms = Array.isArray(roomsData) ? roomsData : [];
+    } catch (e) {
+      console.warn('⚠️ Lỗi parse rooms:', e);
+    }
+    
+    try {
+      const customersData = await customersRes.json();
+      customers = Array.isArray(customersData) ? customersData : [];
+    } catch (e) {
+      console.warn('⚠️ Lỗi parse customers:', e);
+    }
+    
+    try {
+      const bookingsData = await bookingsRes.json();
+      bookings = Array.isArray(bookingsData) ? bookingsData : [];
+    } catch (e) {
+      console.warn('⚠️ Lỗi parse bookings:', e);
+    }
+    
+    // Đảm bảo invoices là array
+    let invoices = [];
+    try {
+      const invoicesData = await invoicesRes.json();
+      invoices = Array.isArray(invoicesData) ? invoicesData : [];
+    } catch (e) {
+      console.warn('Lỗi parse invoices:', e);
+      invoices = [];
+    }
     
     // Update stats
-    document.getElementById('stat-rooms').textContent = rooms.length;
-    document.getElementById('stat-customers').textContent = customers.length;
-    document.getElementById('stat-bookings').textContent = bookings.length;
+    document.getElementById('stat-rooms').textContent = rooms.length || 0;
+    document.getElementById('stat-customers').textContent = customers.length || 0;
+    document.getElementById('stat-bookings').textContent = bookings.length || 0;
     
     // Calculate revenue from PAID invoices only
     const revenue = invoices
-      .filter(inv => inv.TrangThai === 'da_thanh_toan')
+      .filter(inv => inv && inv.TrangThai === 'da_thanh_toan')
       .reduce((sum, inv) => sum + (parseFloat(inv.TongTien) || 0), 0);
     
     // Format revenue with proper handling for large numbers
