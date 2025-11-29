@@ -1865,11 +1865,17 @@
       // Function để khởi tạo lại search cho một page
       window.initPageSearch = function(page) {
         console.log(`🔄 initPageSearch called for: ${page}`);
-        wireSearch(page);
+        if (typeof wireSearch === 'function') {
+          wireSearch(page);
+        } else {
+          console.warn(`⚠️ wireSearch chưa được định nghĩa khi initPageSearch được gọi cho ${page}`);
+        }
       };
       
-      // Expose wireSearch globally để có thể test
+      // Expose wireSearch globally để có thể test - phải expose ngay
       window.wireSearch = wireSearch;
+      
+      console.log('✅ wireSearch và initPageSearch đã được expose lên window');
       
       // Khởi tạo search cho tất cả pages khi DOM ready
       function initAllSearch() {
@@ -1912,7 +1918,7 @@
       // Khởi tạo ngay nếu DOM đã ready
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
-          console.log(' DOM Content Loaded, khởi tạo search...');
+          console.log('📄 DOM Content Loaded, khởi tạo search...');
           setTimeout(() => initAllSearch(), 100);
         });
       } else {
@@ -2595,6 +2601,9 @@
   <script>
     // Đảm bảo search được khởi tạo sau khi tất cả scripts đã load
     (function() {
+      let retryCount = 0;
+      const maxRetries = 10;
+      
       function ensureSearchInitialized() {
         if (window.wireSearch && typeof window.wireSearch === 'function') {
           console.log('✅ wireSearch function đã sẵn sàng, khởi tạo lại search...');
@@ -2607,17 +2616,25 @@
             }
           });
         } else {
-          console.warn('⚠️ wireSearch chưa sẵn sàng, sẽ retry...');
-          setTimeout(ensureSearchInitialized, 200);
+          retryCount++;
+          if (retryCount < maxRetries) {
+            // Chỉ log lần đầu và lần cuối để tránh spam
+            if (retryCount === 1 || retryCount === maxRetries) {
+              console.warn(`⚠️ wireSearch chưa sẵn sàng (lần thử ${retryCount}/${maxRetries}), sẽ retry...`);
+            }
+            setTimeout(ensureSearchInitialized, 300);
+          } else {
+            console.error('❌ Không thể khởi tạo search sau nhiều lần thử. Có thể có lỗi trong code.');
+          }
         }
       }
       
-      // Chờ DOM và scripts load xong
+      // Chờ DOM và scripts load xong - delay lâu hơn để đảm bảo app.js đã load
       if (document.readyState === 'complete') {
-        setTimeout(ensureSearchInitialized, 500);
+        setTimeout(ensureSearchInitialized, 1000);
       } else {
         window.addEventListener('load', () => {
-          setTimeout(ensureSearchInitialized, 500);
+          setTimeout(ensureSearchInitialized, 1000);
         });
       }
     })();
