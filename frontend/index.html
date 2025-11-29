@@ -1708,10 +1708,21 @@
       }
 
       // Search inputs: live filter by text across row cells
+      const searchHandlers = new Map(); // Lưu handlers để có thể remove
+      
       function wireSearch(idPrefix, colCount) {
         const input = document.getElementById("search-" + idPrefix);
-        if (!input) return;
-        let searchTimeout;
+        if (!input) {
+          console.warn(`⚠️ Không tìm thấy input search-${idPrefix}`);
+          return;
+        }
+        
+        // Remove old handler nếu có
+        if (searchHandlers.has(idPrefix)) {
+          const oldHandler = searchHandlers.get(idPrefix);
+          input.removeEventListener("input", oldHandler);
+          input.removeEventListener("focus", oldHandler.focusHandler);
+        }
         
         // Đảm bảo rows có transition style
         const initTableStyles = () => {
@@ -1726,15 +1737,13 @@
           }
         };
         
-        // Khởi tạo styles khi input được focus
-        input.addEventListener('focus', initTableStyles);
-        
-        input.addEventListener("input", () => {
-          clearTimeout(searchTimeout);
-          
-          // Search ngay lập tức, không debounce để responsive hơn
+        // Handler function
+        const handleSearch = () => {
           const tb = document.getElementById("table-" + idPrefix)?.querySelector("tbody");
-          if (!tb) return;
+          if (!tb) {
+            console.warn(`⚠️ Không tìm thấy tbody cho table-${idPrefix}`);
+            return;
+          }
           
           const rows = Array.from(tb.querySelectorAll("tr"));
           const q = input.value.toLowerCase().trim();
@@ -1744,7 +1753,7 @@
             rows.forEach((r) => {
               r.style.display = "";
               r.style.opacity = '1';
-              r.style.transform = 'translateY(0)';
+              r.style.transform = 'translateY(0) scale(1)';
             });
             return;
           }
@@ -1768,7 +1777,7 @@
               requestAnimationFrame(() => {
                 setTimeout(() => {
                   r.style.opacity = '1';
-                  r.style.transform = 'translateY(0)';
+                  r.style.transform = 'translateY(0) scale(1)';
                 }, index * 5); // Stagger nhẹ khi hiển thị lại
               });
             } else {
@@ -1781,18 +1790,54 @@
               }, 150);
             }
           });
+        };
+        
+        // Lưu handlers
+        const focusHandler = initTableStyles;
+        searchHandlers.set(idPrefix, { input: handleSearch, focusHandler });
+        
+        // Khởi tạo styles khi input được focus
+        input.addEventListener('focus', focusHandler);
+        
+        // Search handler
+        input.addEventListener("input", handleSearch);
+        
+        console.log(`✅ Đã khởi tạo search cho: ${idPrefix}`);
+      }
+      
+      // Function để khởi tạo lại search cho một page
+      window.initPageSearch = function(page) {
+        wireSearch(page);
+      };
+      
+      // Khởi tạo search cho tất cả pages khi DOM ready
+      function initAllSearch() {
+        [
+          "customers",
+          "rooms",
+          "services",
+          "bookings",
+          "invoices",
+          "usage",
+          "users",
+        ].forEach((k) => {
+          // Retry nếu element chưa có
+          const input = document.getElementById("search-" + k);
+          if (input) {
+            wireSearch(k);
+          } else {
+            // Retry sau 100ms
+            setTimeout(() => wireSearch(k), 100);
+          }
         });
       }
-
-      [
-        "customers",
-        "rooms",
-        "services",
-        "bookings",
-        "invoices",
-        "usage",
-        "users",
-      ].forEach((k) => wireSearch(k));
+      
+      // Khởi tạo ngay nếu DOM đã ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAllSearch);
+      } else {
+        initAllSearch();
+      }
 
       // Initial show home - sẽ được xử lý bởi app.js
       // app.js sẽ tự động load trang home

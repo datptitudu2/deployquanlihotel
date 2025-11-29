@@ -211,6 +211,11 @@ async function displayCustomers(customers) {
   }
 
   console.log("✅ Đã hiển thị xong", customers.length, "khách hàng");
+  
+  // Khởi tạo lại search sau khi hiển thị data
+  setTimeout(() => {
+    if (window.initPageSearch) window.initPageSearch('customers');
+  }, 100);
 }
 
 async function displayRooms(rooms) {
@@ -273,6 +278,11 @@ async function displayRooms(rooms) {
   }
 
   console.log("✅ Đã hiển thị xong", rooms.length, "phòng");
+  
+  // Khởi tạo lại search sau khi hiển thị data
+  setTimeout(() => {
+    if (window.initPageSearch) window.initPageSearch('rooms');
+  }, 100);
 }
 
 async function displayServices(services) {
@@ -316,6 +326,11 @@ async function displayServices(services) {
       }, i * 10); // Giảm từ 20ms xuống 10ms
     });
   }
+  
+  // Khởi tạo lại search sau khi hiển thị data
+  setTimeout(() => {
+    if (window.initPageSearch) window.initPageSearch('services');
+  }, 100);
 }
 
 async function displayBookings(bookings) {
@@ -368,6 +383,11 @@ async function displayBookings(bookings) {
       }, i * 10); // Giảm từ 20ms xuống 10ms
     });
   }
+  
+  // Khởi tạo lại search sau khi hiển thị data
+  setTimeout(() => {
+    if (window.initPageSearch) window.initPageSearch('bookings');
+  }, 100);
 }
 
 async function displayInvoices(invoices) {
@@ -429,6 +449,11 @@ async function displayInvoices(invoices) {
       }, i * 10); // Giảm từ 20ms xuống 10ms
     });
   }
+  
+  // Khởi tạo lại search sau khi hiển thị data
+  setTimeout(() => {
+    if (window.initPageSearch) window.initPageSearch('invoices');
+  }, 100);
 }
 
 async function displayUsage(usage) {
@@ -471,6 +496,11 @@ async function displayUsage(usage) {
       }, i * 10); // Giảm từ 20ms xuống 10ms
     });
   }
+  
+  // Khởi tạo lại search sau khi hiển thị data
+  setTimeout(() => {
+    if (window.initPageSearch) window.initPageSearch('usage');
+  }, 100);
 }
 
 async function deleteInvoice(invoiceId) {
@@ -1131,6 +1161,11 @@ function displayUsers(users) {
     `;
     tbody.innerHTML += row;
   });
+  
+  // Khởi tạo lại search sau khi hiển thị data
+  setTimeout(() => {
+    if (window.initPageSearch) window.initPageSearch('users');
+  }, 100);
 }
 
 let editingUserId = null;
@@ -1669,15 +1704,43 @@ window.showPage = function(page) {
       "NORTHWEST";
   }
   
-  // Load data when switching pages
-  if (page === "customers") loadCustomers();
-  else if (page === "rooms") loadRooms();
-  else if (page === "services") loadServices();
-  else if (page === "bookings") loadBookings();
-  else if (page === "invoices") loadInvoices();
-  else if (page === "usage") loadUsage();
-  else if (page === "users") loadUsers();
-  else if (page === "home") loadDashboardStats();
+  // Load data when switching pages và khởi tạo search
+  const initSearchForPage = () => {
+    // Khởi tạo search sau một chút để đảm bảo DOM đã render
+    setTimeout(() => {
+      if (window.initPageSearch && page !== "home") {
+        window.initPageSearch(page);
+      }
+    }, 200);
+  };
+  
+  if (page === "customers") {
+    loadCustomers().then(initSearchForPage);
+  }
+  else if (page === "rooms") {
+    loadRooms().then(initSearchForPage);
+  }
+  else if (page === "services") {
+    loadServices().then(initSearchForPage);
+  }
+  else if (page === "bookings") {
+    loadBookings().then(initSearchForPage);
+  }
+  else if (page === "invoices") {
+    loadInvoices().then(initSearchForPage);
+  }
+  else if (page === "usage") {
+    loadUsage().then(initSearchForPage);
+  }
+  else if (page === "users") {
+    loadUsers().then(initSearchForPage);
+  }
+  else if (page === "home") {
+    loadDashboardStats();
+  } else {
+    // Khởi tạo search cho các page khác
+    initSearchForPage();
+  }
 };
 
 // Make functions global
